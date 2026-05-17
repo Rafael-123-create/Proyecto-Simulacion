@@ -10,8 +10,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Game Settings")]
     public int totalLevels = 3;
-    public float levelWaitTime = 3f; // Time to wait between levels
-    public float gameOverWaitTime = 3f; // Time to wait before showing game over screen
+    public float levelWaitTime = 3f;
+    public float gameOverWaitTime = 3f;
 
     [Header("References")]
     public WaveSpawner waveSpawner;
@@ -19,14 +19,16 @@ public class GameManager : MonoBehaviour
     public VersusModeManager versusModeManager;
     public Transform player1Prefab;
     public Transform player2Prefab;
-    public Transform[] spawnPoints; // For enemies
+    public Transform[] spawnPoints;
 
     [Header("Player Settings")]
     public int startingLives = 3;
+    public bool spawnPlayer2InScene = false; // If true, spawns player 2 even in single player
+    public bool useExistingPlayersInScene = true; // If true, uses players already in scene instead of spawning new ones
 
     // Game state
     private int currentLevel = 0;
-    private int[] playerScores = new int[2]; // Index 0 for player 1, 1 for player 2
+    private int[] playerScores = new int[2];
     private int[] playerLives = new int[2];
     private bool isGameOver = false;
     private bool isVersusMode = false;
@@ -41,7 +43,6 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        // Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -54,7 +55,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Initialize game
         InitializeGame();
     }
 
@@ -68,7 +68,6 @@ public class GameManager : MonoBehaviour
         isGameOver = false;
         isLevelComplete = false;
 
-        // Update UI
         if (uiManager != null)
         {
             uiManager.UpdateScore(1, playerScores[0]);
@@ -78,22 +77,21 @@ public class GameManager : MonoBehaviour
             uiManager.SetLevelText(currentLevel + 1);
         }
 
-        // Start first level
         StartLevel();
     }
 
     public void StartLevel()
     {
         isLevelComplete = false;
-        // Clear any existing enemies? We'll let the wave spawner handle spawning.
-        // We can destroy all enemies if needed.
+        
+        // Clear existing enemies
         EnemyController[] enemies = FindObjectsByType<EnemyController>();
         foreach (EnemyController enemy in enemies)
         {
             Destroy(enemy.gameObject);
         }
 
-        // Clear bullets?
+        // Clear existing bullets
         Bullet[] bullets = FindObjectsByType<Bullet>();
         foreach (Bullet bullet in bullets)
         {
@@ -116,30 +114,60 @@ public class GameManager : MonoBehaviour
             uiManager.ShowLevelStartUI();
         }
 
-        // Start level wait coroutine
         StartCoroutine(LevelStartWait());
     }
 
     IEnumerator LevelStartWait()
     {
-        // Show "GET READY" or similar
         if (uiManager != null)
         {
             uiManager.ShowGetReadyUI();
         }
-        yield return new WaitForSeconds(2f); // Wait for 2 seconds
+        yield return new WaitForSeconds(2f);
         if (uiManager != null)
         {
             uiManager.HideGetReadyUI();
         }
-        // Then let the wave spawner start spawning
     }
 
     void SpawnPlayers()
     {
-        // Destroy existing players if any
-        PlayerController[] existingPlayers = FindObjectsByType<PlayerController>();
-        foreach (PlayerController player in existingPlayers)
+        if (useExistingPlayersInScene)
+        {
+            // Use players already in the scene
+            PlayerController[] existingPlayers = FindObjectsByType<PlayerController>();
+            int playerCount = existingPlayers.Length;
+            
+            if (playerCount >= 1)
+            {
+                // Configure first player as Player 1
+                existingPlayers[0].playerNumber = 1;
+                existingPlayers[0].gameObject.name = "Player1";
+            }
+            
+            if (playerCount >= 2)
+            {
+                // Configure second player as Player 2
+                existingPlayers[1].playerNumber = 2;
+                existingPlayers[1].gameObject.name = "Player2";
+            }
+            else if (spawnPlayer2InScene && player2Prefab != null)
+            {
+                // Spawn player 2 if needed
+                Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+                player2Obj.name = "Player2";
+                PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
+                if (pc2 != null) pc2.playerNumber = 2;
+            }
+            
+            Debug.Log("GameManager: Using " + playerCount + " existing player(s) in scene");
+            return;
+        }
+
+        // Otherwise, destroy existing players and spawn new ones from prefabs
+        PlayerController[] playersToDestroy = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in playersToDestroy)
         {
             Destroy(player.gameObject);
         }
@@ -147,32 +175,21 @@ public class GameManager : MonoBehaviour
         // Spawn player 1 (left side)
         if (player1Prefab != null)
         {
-            Vector3 player1Pos = new Vector3(-4f, 0f, 0f); // Adjust as needed
+            Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
             GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
             player1Obj.name = "Player1";
-            PlayerController player1Controller = player1Obj.GetComponent<PlayerController>();
-            if (player1Controller != null)
-            {
-                player1Controller.playerNumber = 1;
-            }
+            PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
+            if (pc1 != null) pc1.playerNumber = 1;
         }
 
         // Spawn player 2 (right side)
-        if (player2Prefab != null && isVersusMode)
+        if (player2Prefab != null && (isVersusMode || spawnPlayer2InScene))
         {
-            Vector3 player2Pos = new Vector3(4f, 0f, 0f); // Adjust as needed
+            Vector3 player2Pos = new Vector3(2f, -3f, 0f);
             GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
             player2Obj.name = "Player2";
-            PlayerController player2Controller = player2Obj.GetComponent<PlayerController>();
-            if (player2Controller != null)
-            {
-                player2Controller.playerNumber = 2;
-            }
-        }
-        else if (!isVersusMode && player2Prefab != null)
-        {
-            // In single player mode, we might not spawn player 2, or we can spawn it as an AI?
-            // For now, we only spawn player 2 in versus mode.
+            PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
+            if (pc2 != null) pc2.playerNumber = 2;
         }
     }
 
@@ -213,15 +230,6 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateLives(playerNumber, playerLives[index]);
         }
 
-        // Check if player is out of lives
-        if (playerLives[index] <= 0)
-        {
-            // Player is dead
-            // We can handle player death here (e.g., disable player object)
-            // For now, we just note it.
-        }
-
-        // Check if game is over (both players out of lives in versus mode, or player 1 out in single player)
         if (isVersusMode)
         {
             if (playerLives[0] <= 0 && playerLives[1] <= 0)
@@ -238,20 +246,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void EnemyDestroyed(EnemyType type)
-    {
-        // Optional: give score based on type? We'll let the enemy controller handle scoring via AddScore.
-        // But we can also do it here if we want centralized scoring.
-        // For now, we'll let the enemy controller call AddScore when it dies.
-    }
+    public void EnemyDestroyed(EnemyType type) { }
 
-    public void WaveComplete()
-    {
-        // Check if all waves are done for the level? We'll use a simple wave count.
-        // Alternatively, we can have the wave spawner tell us when a wave is complete and we track the wave number.
-        // For simplicity, we'll say that after a certain number of waves, the level is complete.
-        // We'll implement this in the WaveSpawner and have it call LevelComplete() on the GameManager.
-    }
+    public void WaveComplete() { }
 
     public void LevelComplete()
     {
@@ -259,21 +256,16 @@ public class GameManager : MonoBehaviour
 
         isLevelComplete = true;
 
-        // Disable wave spawner
         if (waveSpawner != null)
         {
             waveSpawner.enabled = false;
         }
 
-        // Clear remaining enemies and bullets? Optional.
-
-        // Show level complete UI
         if (uiManager != null)
         {
             uiManager.ShowLevelCompleteUI(playerScores[0], playerScores[1]);
         }
 
-        // Wait then go to next level or game complete
         StartCoroutine(LevelCompleteWait());
     }
 
@@ -284,12 +276,10 @@ public class GameManager : MonoBehaviour
         currentLevel++;
         if (currentLevel >= totalLevels)
         {
-            // Game complete
             EndGame();
         }
         else
         {
-            // Start next level
             StartLevel();
         }
     }
@@ -300,32 +290,25 @@ public class GameManager : MonoBehaviour
 
         isGameOver = true;
 
-        // Disable wave spawner
         if (waveSpawner != null)
         {
             waveSpawner.enabled = false;
         }
 
-        // Show game over UI
         if (uiManager != null)
         {
             uiManager.ShowGameOverUI(playerScores[0], playerScores[1], isVersusMode);
         }
 
-        // Optionally, return to main menu after a delay
         StartCoroutine(ReturnToMenuAfterDelay());
     }
 
     IEnumerator ReturnToMenuAfterDelay()
     {
         yield return new WaitForSeconds(gameOverWaitTime);
-        // Load main menu scene
-        // SceneManager.LoadScene("MainMenu");
-        // For now, we just log.
-        Debug.Log("Game Over. Returning to menu.");
+        Debug.Log("Game Over.");
     }
 
-    // Versus mode control
     public void SetVersusMode(bool versus)
     {
         isVersusMode = versus;
@@ -342,7 +325,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Getters
     public bool IsVersusMode() { return isVersusMode; }
     public bool IsGameOver() { return isGameOver; }
     public int GetPlayerScore(int playerNumber) { return playerScores[playerNumber - 1]; }
