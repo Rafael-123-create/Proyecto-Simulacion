@@ -50,7 +50,8 @@ public abstract class EnemyController : MonoBehaviour
         UpdateBehavior();
         
         // Check if off screen (bottom)
-        if (transform.position.y < Camera.main.orthographicSize * -1f - 2f)
+        Camera cam = Camera.main ?? Camera.current;
+        if (cam != null && transform.position.y < cam.transform.position.y - cam.orthographicSize - 2f)
         {
             Destroy(gameObject);
         }

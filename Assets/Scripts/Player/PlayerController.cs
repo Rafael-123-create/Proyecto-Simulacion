@@ -8,13 +8,14 @@ public class PlayerController : MonoBehaviour
     public int playerNumber = 1; // 1 or 2, set in inspector for each player
     
     [Header("Lane Settings")]
-    public int laneCount = 5; // Number of horizontal lanes
+    public int laneCount = 5; // Number of vertical lanes (columns)
     
     [Header("Movement Settings")]
-    public float laneChangeSpeed = 10f; // How fast to snap to lane center
-    public float moveSpeed = 5f; // Speed for offset and vertical movement
+    public float laneChangeSpeed = 12f; // How fast to snap to lane center
+    public float moveSpeed = 8f; // Speed for movement within lane
     public float maxVertical = 4f; // Top boundary
     public float minVertical = -4f; // Bottom boundary
+    public float maxLateralOffset = 0.8f; // Max left/right movement within lane
     
     [Header("Shooting")]
     public GameObject bulletPrefab;
@@ -26,13 +27,18 @@ public class PlayerController : MonoBehaviour
     public bool useGamepad = true;
     
     // Internal state
-    private int currentLaneIndex = 2; // Start in middle lane (0-indexed, 0=leftmost, 4=rightmost)
-    private float laneOffset = 0f; // Current offset within lane (-maxOffset to maxOffset)
-    private float verticalPosition = 0f; // Current Y position
-    private float maxLaneOffset = 0f; // Maximum allowed offset within lane (calculated)
-    private float laneWidth = 0f; // Width of each lane (calculated)
-    private float screenLeft = 0f; // Left boundary of playable area
-    private float screenRight = 0f; // Right boundary of playable area
+    private int currentLaneIndex = 2; // Start in middle lane (0-indexed)
+    private float lateralOffset = 0f; // Left/right offset within lane
+    private float verticalPosition = 0f; // Y position
+    private float targetLaneX = 0f; // Target X for lane center
+    private float laneWidth = 0f; // Width of each lane
+    private float screenLeft = 0f; // Left boundary
+    private float screenRight = 0f; // Right boundary
+    
+    // Track previous input to detect key presses (not holds)
+    private bool prevLaneLeft = false;
+    private bool prevLaneRight = false;
+    private bool shootPressed = false;
     
     void Start()
     {
@@ -42,16 +48,13 @@ public class PlayerController : MonoBehaviour
     
     void InitializeBounds()
     {
-        // Calculate playable bounds based on camera and versus mode
         Camera cam = Camera.main;
         if (cam == null) return;
         
-        // Get the camera's viewport in world space
         float camHeight = 2f * cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
         
-        // In versus mode, each player gets half the screen
-        // We need to check if we're in versus mode from GameManager
+        // Check versus mode
         bool isVersus = false;
         if (GameManager.Instance != null)
         {
@@ -59,11 +62,9 @@ public class PlayerController : MonoBehaviour
         }
         
         float playableWidth = isVersus ? camWidth / 2f : camWidth;
-        float playableHeight = camHeight; // Height is typically not split in versus mode for this game
         
-        // Calculate lane width and max offset
+        // Calculate lane width
         laneWidth = playableWidth / laneCount;
-        maxLaneOffset = laneWidth / 2f * 0.8f; // 80% of half-lane width for comfortable movement
         
         // Calculate screen bounds for this player
         float halfPlayableWidth = playableWidth / 2f;
@@ -75,150 +76,191 @@ public class PlayerController : MonoBehaviour
         {
             if (playerNumber == 2)
             {
-                // Player 2 is on the right half
                 screenLeft += playableWidth;
                 screenRight += playableWidth;
             }
-            // Player 1 stays on left half (no adjustment needed)
         }
+        
+        // Initialize target lane X
+        targetLaneX = GetLaneCenterX();
     }
     
     void InitializePosition()
     {
-        // Initialize position based on lane
-        UpdateLanePosition();
-        // Initialize Y to minimum (bottom) or center - we'll let player start at bottom
+        currentLaneIndex = laneCount / 2; // Start in middle
+        targetLaneX = GetLaneCenterX();
+        lateralOffset = 0f;
         verticalPosition = minVertical;
-        transform.position = new Vector3(GetLaneCenterX() + laneOffset, verticalPosition, 0f);
+        transform.position = new Vector3(targetLaneX, verticalPosition, 0f);
     }
     
     void Update()
     {
         HandleInput();
         UpdatePosition();
+        HandleShooting();
     }
     
     void HandleInput()
     {
-        // Get input based on player number
-        float horizontalInput = 0f;
-        float verticalInput = 0f;
-        bool laneChangeUp = false;
-        bool laneChangeDown = false;
-        bool shootPressed = false;
+        float lateralInput = 0f; // Left/Right within lane
+        float verticalInput = 0f; // Forward/Back
+        bool laneLeftPressed = false;
+        bool laneRightPressed = false;
+        shootPressed = false;
         
         if (playerNumber == 1)
         {
-            // Player 1: WASD for movement, Left Shift + W/S for lane change
+            // Player 1 Controls:
+            // Lane Change: Q (left lane) / E (right lane)
+            // Lateral: A (left) / D (right)
+            // Vertical: W (up) / S (down)
+            // Shoot: Left Ctrl
+            
             if (Keyboard.current != null)
             {
-                // Horizontal movement (A/D)
-                if (Keyboard.current.aKey.isPressed) horizontalInput -= 1f;
-                if (Keyboard.current.dKey.isPressed) horizontalInput += 1f;
+                // Lane change (detect press, not hold)
+                bool qPressed = Keyboard.current.qKey.isPressed;
+                bool ePressed = Keyboard.current.eKey.isPressed;
                 
-                // Vertical movement (W/S) - this will be for forward/back
+                if (qPressed && !prevLaneLeft) laneLeftPressed = true;
+                if (ePressed && !prevLaneRight) laneRightPressed = true;
+                
+                prevLaneLeft = qPressed;
+                prevLaneRight = ePressed;
+                
+                // Lateral movement within lane
+                if (Keyboard.current.aKey.isPressed) lateralInput -= 1f;
+                if (Keyboard.current.dKey.isPressed) lateralInput += 1f;
+                
+                // Vertical movement
                 if (Keyboard.current.wKey.isPressed) verticalInput += 1f;
                 if (Keyboard.current.sKey.isPressed) verticalInput -= 1f;
                 
-                // Lane change with Left Shift (W/S with Shift)
-                if (Keyboard.current.leftShiftKey.isPressed)
-                {
-                    if (Keyboard.current.wKey.isPressed) laneChangeUp = true;
-                    if (Keyboard.current.sKey.isPressed) laneChangeDown = true;
-                }
-                
-                // Shoot with Left Ctrl
+                // Shoot
                 if (Keyboard.current.leftCtrlKey.isPressed) shootPressed = true;
             }
             
             // Gamepad 0
-            if (useGamepad && Gamepad.current != null && Gamepad.all.Count > 0)
+            if (useGamepad && Gamepad.all.Count > 0)
             {
-                var pad = Gamepad.all[0]; // First gamepad for player 1
-                horizontalInput += pad.leftStick.x.ReadValue();
+                var pad = Gamepad.all[0];
+                lateralInput += pad.leftStick.x.ReadValue();
                 verticalInput += pad.leftStick.y.ReadValue();
                 
                 // D-Pad for lane change
-                if (pad.dpad.up.isPressed) laneChangeUp = true;
-                if (pad.dpad.down.isPressed) laneChangeDown = true;
+                if (pad.dpad.left.isPressed && !prevLaneLeft) laneLeftPressed = true;
+                if (pad.dpad.right.isPressed && !prevLaneRight) laneRightPressed = true;
                 
-                // Shoot with Right Trigger
+                prevLaneLeft = pad.dpad.left.isPressed;
+                prevLaneRight = pad.dpad.right.isPressed;
+                
+                // Shoot
                 if (pad.rightTrigger.isPressed) shootPressed = true;
             }
         }
         else if (playerNumber == 2)
         {
-            // Player 2: Arrow Keys for movement, Right Shift + Up/Down for lane change
+            // Player 2 Controls:
+            // Lane Change: U (left lane) / O (right lane)
+            // Lateral: Left Arrow / Right Arrow
+            // Vertical: Up Arrow / Down Arrow
+            // Shoot: Right Ctrl
+            
             if (Keyboard.current != null)
             {
-                // Horizontal movement (Left/Right Arrows)
-                if (Keyboard.current.leftArrowKey.isPressed) horizontalInput -= 1f;
-                if (Keyboard.current.rightArrowKey.isPressed) horizontalInput += 1f;
+                // Lane change (detect press, not hold)
+                bool uPressed = Keyboard.current.uKey.isPressed;
+                bool oPressed = Keyboard.current.oKey.isPressed;
                 
-                // Vertical movement (Up/Down Arrows) - forward/back
+                if (uPressed && !prevLaneLeft) laneLeftPressed = true;
+                if (oPressed && !prevLaneRight) laneRightPressed = true;
+                
+                prevLaneLeft = uPressed;
+                prevLaneRight = oPressed;
+                
+                // Lateral movement within lane
+                if (Keyboard.current.leftArrowKey.isPressed) lateralInput -= 1f;
+                if (Keyboard.current.rightArrowKey.isPressed) lateralInput += 1f;
+                
+                // Vertical movement
                 if (Keyboard.current.upArrowKey.isPressed) verticalInput += 1f;
                 if (Keyboard.current.downArrowKey.isPressed) verticalInput -= 1f;
                 
-                // Lane change with Right Shift (Up/Down with Shift)
-                if (Keyboard.current.rightShiftKey.isPressed)
-                {
-                    if (Keyboard.current.upArrowKey.isPressed) laneChangeUp = true;
-                    if (Keyboard.current.downArrowKey.isPressed) laneChangeDown = true;
-                }
-                
-                // Shoot with Right Ctrl
+                // Shoot
                 if (Keyboard.current.rightCtrlKey.isPressed) shootPressed = true;
             }
             
             // Gamepad 1
-            if (useGamepad && Gamepad.current != null && Gamepad.all.Count > 1)
+            if (useGamepad && Gamepad.all.Count > 1)
             {
-                var pad = Gamepad.all[1]; // Second gamepad for player 2
-                horizontalInput += pad.leftStick.x.ReadValue();
+                var pad = Gamepad.all[1];
+                lateralInput += pad.leftStick.x.ReadValue();
                 verticalInput += pad.leftStick.y.ReadValue();
                 
                 // D-Pad for lane change
-                if (pad.dpad.up.isPressed) laneChangeUp = true;
-                if (pad.dpad.down.isPressed) laneChangeDown = true;
+                if (pad.dpad.left.isPressed && !prevLaneLeft) laneLeftPressed = true;
+                if (pad.dpad.right.isPressed && !prevLaneRight) laneRightPressed = true;
                 
-                // Shoot with Left Trigger (for variety)
+                prevLaneLeft = pad.dpad.left.isPressed;
+                prevLaneRight = pad.dpad.right.isPressed;
+                
+                // Shoot
                 if (pad.leftTrigger.isPressed) shootPressed = true;
             }
         }
         
-        // Process lane change
-        if (laneChangeUp && currentLaneIndex < laneCount - 1)
-        {
-            currentLaneIndex++;
-        }
-        if (laneChangeDown && currentLaneIndex > 0)
+        // Process lane change (only on press, not hold)
+        if (laneLeftPressed && currentLaneIndex > 0)
         {
             currentLaneIndex--;
+            targetLaneX = GetLaneCenterX();
+        }
+        if (laneRightPressed && currentLaneIndex < laneCount - 1)
+        {
+            currentLaneIndex++;
+            targetLaneX = GetLaneCenterX();
         }
         
-        // Process movement within lane
-        if (Mathf.Abs(horizontalInput) > 0.1f)
+        // Process lateral movement within lane
+        if (Mathf.Abs(lateralInput) > 0.1f)
         {
-            // Update horizontal offset within lane
-            laneOffset = Mathf.Clamp(
-                laneOffset + horizontalInput * Time.deltaTime * moveSpeed,
-                -maxLaneOffset, 
-                maxLaneOffset
+            lateralOffset = Mathf.Clamp(
+                lateralOffset + lateralInput * Time.deltaTime * moveSpeed,
+                -maxLateralOffset, 
+                maxLateralOffset
             );
         }
         
-        // Process vertical movement (forward/back)
+        // Process vertical movement
         if (Mathf.Abs(verticalInput) > 0.1f)
         {
-            // Update vertical position
             verticalPosition = Mathf.Clamp(
                 verticalPosition + verticalInput * Time.deltaTime * moveSpeed,
                 minVertical,
                 maxVertical
             );
         }
+    }
+    
+    void UpdatePosition()
+    {
+        // Smoothly move toward target lane center + lateral offset
+        float targetX = targetLaneX + lateralOffset;
+        float currentX = transform.position.x;
+        float newX = Mathf.Lerp(currentX, targetX, Time.deltaTime * laneChangeSpeed);
         
-        // Process shooting
+        transform.position = new Vector3(newX, verticalPosition, 0f);
+    }
+    
+    float GetLaneCenterX()
+    {
+        // Lane centers are distributed from screenLeft to screenRight
+        return screenLeft + (currentLaneIndex + 0.5f) * laneWidth;
+    }
+    
+    void HandleShooting()
+    {
         if (shootPressed && Time.time >= nextFireTime && bulletPrefab != null && firePoint != null)
         {
             Shoot();
@@ -226,46 +268,17 @@ public class PlayerController : MonoBehaviour
         }
     }
     
-    void UpdatePosition()
-    {
-        // Smoothly move toward target lane center
-        float targetX = GetLaneCenterX() + laneOffset;
-        float currentX = transform.position.x;
-        float newX = Mathf.Lerp(currentX, targetX, Time.deltaTime * laneChangeSpeed);
-        
-        // Keep vertical position as is (already clamped in input)
-        float newY = verticalPosition;
-        
-        transform.position = new Vector3(newX, newY, 0f);
-    }
-    
-    float GetLaneCenterX()
-    {
-        // Calculate the center X position of the current lane
-        // Lanes are distributed from screenLeft to screenRight
-        float lanePosition = screenLeft + (currentLaneIndex + 0.5f) * laneWidth;
-        return lanePosition;
-    }
-
-    void UpdateLanePosition()
-    {
-        float laneX = GetLaneCenterX() + laneOffset;
-        transform.position = new Vector3(laneX, transform.position.y, 0f);
-    }
-    
     void Shoot()
     {
         if (bulletPrefab != null && firePoint != null)
         {
             Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-            // Optional: add muzzle flash effect here
         }
     }
     
-    // Optional: Add visualization for lanes in editor
+    // Visualize lanes in editor
     void OnDrawGizmosSelected()
     {
-        // Recalculate bounds for gizmo drawing (approximation)
         Camera cam = Camera.main;
         if (cam == null) return;
         
@@ -279,7 +292,6 @@ public class PlayerController : MonoBehaviour
         
         float playableWidth = isVersus ? camWidth / 2f : camWidth;
         float laneWidthGizmo = playableWidth / laneCount;
-        float maxOffsetGizmo = laneWidthGizmo / 2f * 0.8f;
         
         float screenLeftGizmo = -playableWidth / 2f;
         if (isVersus && playerNumber == 2)
@@ -297,25 +309,17 @@ public class PlayerController : MonoBehaviour
         
         // Draw current lane highlight
         Gizmos.color = Color.green;
-        float currentLaneX = GetLaneCenterX();
+        float currentLaneX = screenLeftGizmo + (currentLaneIndex + 0.5f) * laneWidthGizmo;
         Gizmos.DrawLine(new Vector3(currentLaneX, minVertical - 1f, 0), new Vector3(currentLaneX, maxVertical + 1f, 0));
         
         // Draw player position
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(transform.position, 0.2f);
         
-        // Draw lane boundaries
-        Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
-        for (int i = 0; i <= laneCount; i++)
-        {
-            float boundaryX = screenLeftGizmo + i * laneWidthGizmo;
-            Gizmos.DrawLine(new Vector3(boundaryX, minVertical - 1f, 0), new Vector3(boundaryX, maxVertical + 1f, 0));
-        }
-        
-        // Draw movement range for current lane
-        Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
-        float minOffsetX = GetLaneCenterX() - maxLaneOffset;
-        float maxOffsetX = GetLaneCenterX() + maxLaneOffset;
+        // Draw lateral offset range
+        Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+        float minOffsetX = currentLaneX - maxLateralOffset;
+        float maxOffsetX = currentLaneX + maxLateralOffset;
         Gizmos.DrawLine(new Vector3(minOffsetX, minVertical, 0), new Vector3(minOffsetX, maxVertical, 0));
         Gizmos.DrawLine(new Vector3(maxOffsetX, minVertical, 0), new Vector3(maxOffsetX, maxVertical, 0));
     }

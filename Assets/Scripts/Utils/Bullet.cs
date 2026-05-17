@@ -12,7 +12,8 @@ public class Bullet : MonoBehaviour
         transform.Translate(Vector3.up * speed * Time.deltaTime);
         
         // Destroy if off screen (top)
-        if (transform.position.y > Camera.main.orthographicSize + 2f)
+        Camera cam = Camera.main ?? Camera.current;
+        if (cam != null && transform.position.y > cam.transform.position.y + cam.orthographicSize + 2f)
         {
             Destroy(gameObject);
         }

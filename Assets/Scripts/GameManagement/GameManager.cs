@@ -87,22 +87,17 @@ public class GameManager : MonoBehaviour
         isLevelComplete = false;
         // Clear any existing enemies? We'll let the wave spawner handle spawning.
         // We can destroy all enemies if needed.
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach (GameObject enemy in enemies)
+        EnemyController[] enemies = FindObjectsByType<EnemyController>();
+        foreach (EnemyController enemy in enemies)
         {
-            Destroy(enemy);
+            Destroy(enemy.gameObject);
         }
 
         // Clear bullets?
-        GameObject[] bullets = GameObject.FindGameObjectsWithTag("PlayerBullet");
-        foreach (GameObject bullet in bullets)
+        Bullet[] bullets = FindObjectsByType<Bullet>();
+        foreach (Bullet bullet in bullets)
         {
-            Destroy(bullet);
-        }
-        bullets = GameObject.FindGameObjectsWithTag("EnemyBullet");
-        foreach (GameObject bullet in bullets)
-        {
-            Destroy(bullet);
+            Destroy(bullet.gameObject);
         }
 
         // Spawn players
@@ -143,24 +138,36 @@ public class GameManager : MonoBehaviour
     void SpawnPlayers()
     {
         // Destroy existing players if any
-        GameObject[] existingPlayers = GameObject.FindGameObjectsWithTag("Player");
-        foreach (GameObject player in existingPlayers)
+        PlayerController[] existingPlayers = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in existingPlayers)
         {
-            Destroy(player);
+            Destroy(player.gameObject);
         }
 
         // Spawn player 1 (left side)
         if (player1Prefab != null)
         {
             Vector3 player1Pos = new Vector3(-4f, 0f, 0f); // Adjust as needed
-            Instantiate(player1Prefab, player1Pos, Quaternion.identity);
+            GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
+            player1Obj.name = "Player1";
+            PlayerController player1Controller = player1Obj.GetComponent<PlayerController>();
+            if (player1Controller != null)
+            {
+                player1Controller.playerNumber = 1;
+            }
         }
 
         // Spawn player 2 (right side)
         if (player2Prefab != null && isVersusMode)
         {
             Vector3 player2Pos = new Vector3(4f, 0f, 0f); // Adjust as needed
-            Instantiate(player2Prefab, player2Pos, Quaternion.identity);
+            GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+            player2Obj.name = "Player2";
+            PlayerController player2Controller = player2Obj.GetComponent<PlayerController>();
+            if (player2Controller != null)
+            {
+                player2Controller.playerNumber = 2;
+            }
         }
         else if (!isVersusMode && player2Prefab != null)
         {
