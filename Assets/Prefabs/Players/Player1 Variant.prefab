@@ -16,6 +16,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3158550491412125194, guid: d01c5f6a0b73ccb4b875f60cf49ce356, type: 3}
+      propertyPath: useGamepad
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3158550491412125194, guid: d01c5f6a0b73ccb4b875f60cf49ce356, type: 3}
+      propertyPath: bulletPrefab
+      value: 
+      objectReference: {fileID: 8948068594120232921, guid: 43b74ef831ff0af498c8e7267cea9da4, type: 3}
     - target: {fileID: 3864406486863932898, guid: d01c5f6a0b73ccb4b875f60cf49ce356, type: 3}
       propertyPath: m_LocalScale.x
       value: 5.0633564
