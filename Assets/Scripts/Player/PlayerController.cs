@@ -48,8 +48,14 @@ public class PlayerController : MonoBehaviour
     
     void InitializeBounds()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
+        Camera cam = GetPlayerCamera();
+        if (cam == null)
+        {
+            Debug.LogError("PlayerController: Could not find camera for Player " + playerNumber);
+            return;
+        }
+        
+        Debug.Log("PlayerController: Player " + playerNumber + " using camera: " + cam.gameObject.name);
         
         float camHeight = 2f * cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
@@ -61,7 +67,7 @@ public class PlayerController : MonoBehaviour
             isVersus = GameManager.Instance.IsVersusMode();
         }
         
-        float playableWidth = isVersus ? camWidth / 2f : camWidth;
+        float playableWidth = camWidth;
         
         // Calculate lane width
         laneWidth = playableWidth / laneCount;
@@ -83,6 +89,33 @@ public class PlayerController : MonoBehaviour
         
         // Initialize target lane X
         targetLaneX = GetLaneCenterX();
+        
+        Debug.Log("PlayerController: Player " + playerNumber + " bounds: left=" + screenLeft + ", right=" + screenRight);
+    }
+    
+    Camera GetPlayerCamera()
+    {
+        // Find camera by GameObject name
+        string camName = playerNumber == 1 ? "Player1Camera" : "Player2Camera";
+        
+        // Use GameObject.Find to search the hierarchy
+        GameObject camObj = GameObject.Find(camName);
+        if (camObj != null)
+        {
+            Camera cam = camObj.GetComponent<Camera>();
+            if (cam != null) return cam;
+            
+            // Check children
+            foreach (Transform child in camObj.transform)
+            {
+                cam = child.GetComponent<Camera>();
+                if (cam != null) return cam;
+            }
+        }
+        
+        // Fallback to Camera.main
+        Debug.LogWarning("PlayerController: Falling back to Camera.main for Player " + playerNumber);
+        return Camera.main;
     }
     
     void InitializePosition()
@@ -215,11 +248,13 @@ public class PlayerController : MonoBehaviour
         {
             currentLaneIndex--;
             targetLaneX = GetLaneCenterX();
+            lateralOffset = 0f;
         }
         if (laneRightPressed && currentLaneIndex < laneCount - 1)
         {
             currentLaneIndex++;
             targetLaneX = GetLaneCenterX();
+            lateralOffset = 0f;
         }
         
         // Process lateral movement within lane

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[DefaultExecutionOrder(-100)]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -55,6 +56,19 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Read mode from PlayerPrefs (set by menu)
+        isVersusMode = PlayerPrefs.GetInt("VersusMode", 0) == 1;
+        Debug.Log("GameManager: Starting in " + (isVersusMode ? "VERSUS" : "SINGLE PLAYER") + " mode");
+        
+        if (isVersusMode && versusModeManager != null)
+        {
+            versusModeManager.EnableVersusMode();
+        }
+        else if (!isVersusMode && versusModeManager != null)
+        {
+            versusModeManager.DisableVersusMode();
+        }
+        
         InitializeGame();
     }
 
@@ -134,45 +148,119 @@ public class GameManager : MonoBehaviour
     {
         if (useExistingPlayersInScene)
         {
-            // Use players already in the scene
             PlayerController[] existingPlayers = FindObjectsByType<PlayerController>();
             int playerCount = existingPlayers.Length;
             
-            if (playerCount >= 1)
+            Debug.Log("GameManager: Found " + playerCount + " existing player(s), versus=" + isVersusMode);
+            for (int i = 0; i < playerCount; i++)
             {
-                // Configure first player as Player 1
-                existingPlayers[0].playerNumber = 1;
-                existingPlayers[0].gameObject.name = "Player1";
+                Debug.Log("GameManager: Player " + i + " - name: " + existingPlayers[i].gameObject.name + 
+                         ", pos: " + existingPlayers[i].transform.position + 
+                         ", active: " + existingPlayers[i].gameObject.activeSelf);
             }
             
-            if (playerCount >= 2)
+            if (isVersusMode)
             {
-                // Configure second player as Player 2
-                existingPlayers[1].playerNumber = 2;
-                existingPlayers[1].gameObject.name = "Player2";
+                // In versus mode, we need 2 players
+                if (playerCount >= 2)
+                {
+                    // Assign Player 1 to the one with lower x position
+                    if (existingPlayers[0].transform.position.x < existingPlayers[1].transform.position.x)
+                    {
+                        existingPlayers[0].playerNumber = 1;
+                        existingPlayers[0].gameObject.name = "Player1";
+                        existingPlayers[0].gameObject.tag = "Player";
+                        existingPlayers[0].gameObject.SetActive(true);
+                        
+                        existingPlayers[1].playerNumber = 2;
+                        existingPlayers[1].gameObject.name = "Player2";
+                        existingPlayers[1].gameObject.tag = "Player";
+                        existingPlayers[1].gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        existingPlayers[1].playerNumber = 1;
+                        existingPlayers[1].gameObject.name = "Player1";
+                        existingPlayers[1].gameObject.tag = "Player";
+                        existingPlayers[1].gameObject.SetActive(true);
+                        
+                        existingPlayers[0].playerNumber = 2;
+                        existingPlayers[0].gameObject.name = "Player2";
+                        existingPlayers[0].gameObject.tag = "Player";
+                        existingPlayers[0].gameObject.SetActive(true);
+                    }
+                    
+                    // Set explicit positions
+                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
+                    existingPlayers[1].transform.position = new Vector3(2f, -3f, 0f);
+                    
+                    Debug.Log("GameManager: Versus mode - Player1 at " + existingPlayers[0].transform.position + 
+                             ", Player2 at " + existingPlayers[1].transform.position);
+                }
+                else if (playerCount == 1 && player2Prefab != null)
+                {
+                    existingPlayers[0].playerNumber = 1;
+                    existingPlayers[0].gameObject.name = "Player1";
+                    existingPlayers[0].gameObject.tag = "Player";
+                    existingPlayers[0].gameObject.SetActive(true);
+                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
+                    
+                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+                    player2Obj.name = "Player2";
+                    player2Obj.tag = "Player";
+                    PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
+                    if (pc2 != null) pc2.playerNumber = 2;
+                    Debug.Log("GameManager: Versus mode - Spawned Player2 from prefab");
+                }
+                else if (player2Prefab != null)
+                {
+                    Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
+                    GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
+                    player1Obj.name = "Player1";
+                    player1Obj.tag = "Player";
+                    PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
+                    if (pc1 != null) pc1.playerNumber = 1;
+                    
+                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+                    player2Obj.name = "Player2";
+                    player2Obj.tag = "Player";
+                    PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
+                    if (pc2 != null) pc2.playerNumber = 2;
+                    Debug.Log("GameManager: Versus mode - Spawned both players from prefabs");
+                }
             }
-            else if (spawnPlayer2InScene && player2Prefab != null)
+            else
             {
-                // Spawn player 2 if needed
-                Vector3 player2Pos = new Vector3(2f, -3f, 0f);
-                GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
-                player2Obj.name = "Player2";
-                PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
-                if (pc2 != null) pc2.playerNumber = 2;
+                // Single player mode: only enable Player 1, disable Player 2
+                if (playerCount >= 1)
+                {
+                    existingPlayers[0].playerNumber = 1;
+                    existingPlayers[0].gameObject.name = "Player1";
+                    existingPlayers[0].gameObject.tag = "Player";
+                    existingPlayers[0].gameObject.SetActive(true);
+                    existingPlayers[0].transform.position = new Vector3(0f, -3f, 0f);
+                }
+                
+                // Disable any additional players
+                for (int i = 1; i < playerCount; i++)
+                {
+                    Debug.Log("GameManager: Disabling extra player " + i);
+                    existingPlayers[i].gameObject.SetActive(false);
+                }
             }
             
-            Debug.Log("GameManager: Using " + playerCount + " existing player(s) in scene");
             return;
         }
 
-        // Otherwise, destroy existing players and spawn new ones from prefabs
+        // Spawn from prefabs
         PlayerController[] playersToDestroy = FindObjectsByType<PlayerController>();
         foreach (PlayerController player in playersToDestroy)
         {
             Destroy(player.gameObject);
         }
 
-        // Spawn player 1 (left side)
         if (player1Prefab != null)
         {
             Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
@@ -182,8 +270,7 @@ public class GameManager : MonoBehaviour
             if (pc1 != null) pc1.playerNumber = 1;
         }
 
-        // Spawn player 2 (right side)
-        if (player2Prefab != null && (isVersusMode || spawnPlayer2InScene))
+        if (player2Prefab != null && isVersusMode)
         {
             Vector3 player2Pos = new Vector3(2f, -3f, 0f);
             GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;

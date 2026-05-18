@@ -8,26 +8,69 @@ public class Bullet : MonoBehaviour
     
     void Update()
     {
-        // Move upward (positive Y)
-        transform.Translate(Vector3.up * speed * Time.deltaTime);
+        // Move upward for player bullets, downward for enemy bullets
+        Vector3 direction = isPlayerBullet ? Vector3.up : Vector3.down;
+        transform.Translate(direction * speed * Time.deltaTime);
         
-        // Destroy if off screen (top)
-        Camera cam = Camera.main ?? Camera.current;
-        if (cam != null && transform.position.y > cam.transform.position.y + cam.orthographicSize + 2f)
+        // Destroy if off screen
+        Camera cam = GetActiveCamera();
+        if (cam != null)
         {
-            Destroy(gameObject);
+            float topBound = cam.transform.position.y + cam.orthographicSize + 2f;
+            float bottomBound = cam.transform.position.y - cam.orthographicSize - 2f;
+            
+            if (isPlayerBullet && transform.position.y > topBound)
+            {
+                Destroy(gameObject);
+            }
+            else if (!isPlayerBullet && transform.position.y < bottomBound)
+            {
+                Destroy(gameObject);
+            }
         }
+    }
+    
+    Camera GetActiveCamera()
+    {
+        Camera[] cameras = FindObjectsByType<Camera>();
+        foreach (Camera cam in cameras)
+        {
+            if (cam.enabled && cam.gameObject.activeInHierarchy)
+            {
+                return cam;
+            }
+        }
+        return Camera.main;
     }
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Optional: handle collisions here or let other scripts handle via tags
-        // For simplicity, we'll let Enemy and Player handle collisions via their own triggers
-        // But we can destroy bullet when hitting something
-        if (other.CompareTag("Enemy") || other.CompareTag("Player"))
+        if (isPlayerBullet)
         {
-            // If bullet hits enemy or player, destroy it
-            Destroy(gameObject);
+            // Player bullet hits enemy
+            if (other.CompareTag("Enemy"))
+            {
+                EnemyController enemy = other.GetComponent<EnemyController>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(damage);
+                }
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            // Enemy bullet hits player
+            if (other.CompareTag("Player"))
+            {
+                PlayerController player = other.GetComponent<PlayerController>();
+                if (player != null && GameManager.Instance != null)
+                {
+                    GameManager.Instance.TakeLife(player.playerNumber);
+                    Debug.Log("Bullet: Player " + player.playerNumber + " hit by enemy bullet");
+                }
+                Destroy(gameObject);
+            }
         }
     }
 }

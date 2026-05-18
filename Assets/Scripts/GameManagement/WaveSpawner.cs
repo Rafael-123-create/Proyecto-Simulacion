@@ -32,16 +32,26 @@ public class WaveSpawner : MonoBehaviour
     
     void Start()
     {
+        Debug.Log("WaveSpawner: Starting with " + enemyTypes.Count + " enemy types and " + spawnPoints.Length + " spawn points");
+        
         // Initialize base intervals from the first enemy type (if any) or use defaults
         if (enemyTypes.Count > 0)
         {
             baseMinInterval = enemyTypes[0].minSpawnInterval;
             baseMaxInterval = enemyTypes[0].maxSpawnInterval;
+            
+            for (int i = 0; i < enemyTypes.Count; i++)
+            {
+                bool prefabValid = enemyTypes[i].prefab != null;
+                Debug.Log("WaveSpawner: EnemyType " + i + " - prefab valid: " + prefabValid + 
+                         (prefabValid ? " (" + enemyTypes[i].prefab.name + ")" : ""));
+            }
         }
         else
         {
             baseMinInterval = 1f;
             baseMaxInterval = 3f;
+            Debug.LogWarning("WaveSpawner: No enemy types configured!");
         }
         
         currentSpawnTimer = initialSpawnDelay;
@@ -69,16 +79,31 @@ public class WaveSpawner : MonoBehaviour
     
     void SpawnRandomEnemy()
     {
-        if (enemyTypes.Count == 0 || spawnPoints.Length == 0) return;
+        if (enemyTypes.Count == 0 || spawnPoints.Length == 0)
+        {
+            Debug.LogWarning("WaveSpawner: Cannot spawn - enemyTypes=" + enemyTypes.Count + ", spawnPoints=" + spawnPoints.Length);
+            return;
+        }
         
-        // Select enemy type based on weights
-        EnemySpawnData selected = SelectWeightedRandom(enemyTypes);
+        EnemySpawnData selected = null;
+        int attempts = 0;
+        while (attempts < 10)
+        {
+            selected = SelectWeightedRandom(enemyTypes);
+            if (selected != null && selected.prefab != null) break;
+            attempts++;
+        }
         
-        // Choose random spawn point
+        if (selected == null || selected.prefab == null)
+        {
+            Debug.LogWarning("WaveSpawner: No valid enemy selected after " + attempts + " attempts");
+            return;
+        }
+        
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
         
-        // Instantiate enemy
         GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
+        Debug.Log("WaveSpawner: Spawned " + selected.type + " at " + spawnPoint.position);
         EnemyController enemy = enemyObj.GetComponent<EnemyController>();
         if (enemy != null)
         {
@@ -116,18 +141,24 @@ public class WaveSpawner : MonoBehaviour
         float totalWeight = 0f;
         foreach (EnemySpawnData data in list)
         {
-            totalWeight += data.spawnWeight;
+            if (data.prefab != null)
+                totalWeight += data.spawnWeight;
         }
         
-        if (totalWeight <= 0f) return list[0];
+        if (totalWeight <= 0f) return list.Count > 0 ? list[0] : null;
         
         float randomPoint = Random.value * totalWeight;
         foreach (EnemySpawnData data in list)
         {
+            if (data.prefab == null) continue;
             if (randomPoint < data.spawnWeight)
                 return data;
             randomPoint -= data.spawnWeight;
         }
-        return list[list.Count - 1]; // Fallback
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            if (list[i].prefab != null) return list[i];
+        }
+        return null;
     }
 }

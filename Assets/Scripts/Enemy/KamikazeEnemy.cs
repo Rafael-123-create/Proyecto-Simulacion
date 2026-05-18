@@ -48,8 +48,16 @@ public class KamikazeEnemy : EnemyController
     
     public override void Update()
     {
-        base.Update();
-        if (!isInitialized || playerTarget == null) return;
+        if (!isInitialized) return;
+        
+        // Always move downward, even without a target
+        transform.Translate(Vector3.down * speed * Time.deltaTime);
+        
+        if (playerTarget == null)
+        {
+            FindPlayerTarget();
+            return;
+        }
         
         // If target destroyed, find a new one
         if (playerTarget.gameObject == null)
@@ -60,12 +68,9 @@ public class KamikazeEnemy : EnemyController
         
         if (!isCharging)
         {
-            // Normal descent
-            transform.Translate(Vector3.down * speed * Time.deltaTime);
-            
             // Check if we should start charging
             float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
-            if (distanceToPlayer < chargeDistanceThreshold)
+            if (distanceToPlayer < chargeDistanceThreshold * 3f) // Increased threshold for better gameplay
             {
                 StartCharge();
             }

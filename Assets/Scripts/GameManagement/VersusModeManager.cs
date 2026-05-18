@@ -9,15 +9,46 @@ public class VersusModeManager : MonoBehaviour
     {
         if (player1Camera == null)
         {
-            GameObject p1Cam = GameObject.FindGameObjectWithTag("Player1Camera");
-            if (p1Cam != null) player1Camera = p1Cam.GetComponent<Camera>();
+            player1Camera = FindCameraByName("Player1Camera");
         }
         
         if (player2Camera == null)
         {
-            GameObject p2Cam = GameObject.FindGameObjectWithTag("Player2Camera");
-            if (p2Cam != null) player2Camera = p2Cam.GetComponent<Camera>();
+            player2Camera = FindCameraByName("Player2Camera");
         }
+        
+        Debug.Log("VersusModeManager: P1 Camera = " + (player1Camera != null ? player1Camera.gameObject.name : "NULL"));
+        Debug.Log("VersusModeManager: P2 Camera = " + (player2Camera != null ? player2Camera.gameObject.name : "NULL"));
+    }
+    
+    Camera FindCameraByName(string name)
+    {
+        // Try exact match first
+        GameObject obj = GameObject.Find(name);
+        if (obj != null)
+        {
+            Camera cam = obj.GetComponent<Camera>();
+            if (cam != null) return cam;
+            
+            // Check children
+            foreach (Transform child in obj.transform)
+            {
+                cam = child.GetComponent<Camera>();
+                if (cam != null) return cam;
+            }
+        }
+        
+        // Search all cameras
+        Camera[] allCameras = FindObjectsByType<Camera>();
+        foreach (Camera cam in allCameras)
+        {
+            if (cam.gameObject.name == name || cam.gameObject.transform.parent?.name == name)
+            {
+                return cam;
+            }
+        }
+        
+        return null;
     }
 
     public void EnableVersusMode()

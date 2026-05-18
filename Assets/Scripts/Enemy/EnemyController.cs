@@ -50,11 +50,25 @@ public abstract class EnemyController : MonoBehaviour
         UpdateBehavior();
         
         // Check if off screen (bottom)
-        Camera cam = Camera.main ?? Camera.current;
+        Camera cam = GetActiveCamera();
         if (cam != null && transform.position.y < cam.transform.position.y - cam.orthographicSize - 2f)
         {
             Destroy(gameObject);
         }
+    }
+    
+    Camera GetActiveCamera()
+    {
+        // Try to find an active camera
+        Camera[] cameras = FindObjectsByType<Camera>();
+        foreach (Camera cam in cameras)
+        {
+            if (cam.enabled && cam.gameObject.activeInHierarchy)
+            {
+                return cam;
+            }
+        }
+        return Camera.main;
     }
     
     protected virtual void UpdateMovement() { }
@@ -94,12 +108,16 @@ public abstract class EnemyController : MonoBehaviour
             }
         }
         
-        // Handle collision with player (for kamikaze)
-        if (other.CompareTag("Player") && type == EnemyType.Kamikaze)
+        // Handle collision with player (all enemy types damage player on contact)
+        if (other.CompareTag("Player"))
         {
-            // Damage player (we'll implement player health later)
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null && GameManager.Instance != null)
+            {
+                GameManager.Instance.TakeLife(player.playerNumber);
+                Debug.Log("EnemyController: Player " + player.playerNumber + " took damage from " + type);
+            }
             Die(); // Enemy dies on impact
-            // TODO: Apply damage to player
         }
     }
 }

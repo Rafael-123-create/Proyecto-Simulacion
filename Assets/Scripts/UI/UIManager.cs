@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 using System.Collections;
 
 public class UIManager : MonoBehaviour
@@ -7,15 +7,15 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
 
     [Header("References")]
-    public Text player1ScoreText;
-    public Text player2ScoreText;
-    public Text player1LivesText;
-    public Text player2LivesText;
-    public Text levelText;
-    public Text getReadyText;
-    public Text levelCompleteText;
-    public Text gameOverText;
-    public Text winnerText;
+    public TMP_Text player1ScoreText;
+    public TMP_Text player2ScoreText;
+    public TMP_Text player1LivesText;
+    public TMP_Text player2LivesText;
+    public TMP_Text levelText;
+    public TMP_Text getReadyText;
+    public TMP_Text levelCompleteText;
+    public TMP_Text gameOverText;
+    public TMP_Text winnerText;
 
     [Header("Panels")]
     public GameObject getReadyPanel;
