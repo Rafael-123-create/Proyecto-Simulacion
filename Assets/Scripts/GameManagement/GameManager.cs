@@ -319,13 +319,18 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateLives(playerNumber, playerLives[index]);
         }
 
+        // Check game over condition
+        bool shouldEndGame = false;
+        
         if (isVersusMode)
         {
-            Debug.Log("GameManager: Versus mode - P1 lives: " + playerLives[0] + ", P2 lives: " + playerLives[1]);
-            if (playerLives[0] <= 0 && playerLives[1] <= 0)
+            // In versus mode, game ends when ANY player loses all lives
+            // OR when both players lose all lives (depending on preference)
+            // Current behavior: end when any player reaches 0 lives
+            if (playerLives[0] <= 0 || playerLives[1] <= 0)
             {
-                Debug.Log("GameManager: Both players out of lives - ending game");
-                EndGame();
+                Debug.Log("GameManager: Versus mode - Player " + playerNumber + " out of lives. P1: " + playerLives[0] + ", P2: " + playerLives[1]);
+                shouldEndGame = true;
             }
         }
         else
@@ -333,8 +338,14 @@ public class GameManager : MonoBehaviour
             if (playerLives[0] <= 0)
             {
                 Debug.Log("GameManager: Player 1 out of lives - ending game");
-                EndGame();
+                shouldEndGame = true;
             }
+        }
+        
+        if (shouldEndGame)
+        {
+            Debug.Log("GameManager: Ending game...");
+            EndGame();
         }
     }
 

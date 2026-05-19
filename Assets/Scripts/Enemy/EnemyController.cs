@@ -103,11 +103,14 @@ public abstract class EnemyController : MonoBehaviour
     
     void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("EnemyController: OnCollisionEnter2D with " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ")");
+        
         if (collision.gameObject.CompareTag("PlayerBullet"))
         {
             Bullet bullet = collision.gameObject.GetComponent<Bullet>();
             if (bullet != null && bullet.isPlayerBullet)
             {
+                Debug.Log("EnemyController: Hit by player bullet from Player " + bullet.ownerPlayerNumber);
                 TakeDamage(bullet.damage, bullet.ownerPlayerNumber);
                 Destroy(collision.gameObject);
             }
@@ -118,8 +121,8 @@ public abstract class EnemyController : MonoBehaviour
             PlayerController player = collision.gameObject.GetComponent<PlayerController>();
             if (player != null && GameManager.Instance != null)
             {
+                Debug.Log("EnemyController: Collision with Player " + player.playerNumber + " - calling TakeLife");
                 GameManager.Instance.TakeLife(player.playerNumber);
-                Debug.Log("EnemyController: Player " + player.playerNumber + " took damage from " + type);
             }
             Die();
         }
