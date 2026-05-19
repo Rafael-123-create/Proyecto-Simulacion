@@ -103,7 +103,7 @@ public abstract class EnemyController : MonoBehaviour
     
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("EnemyController: OnCollisionEnter2D with " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ")");
+        Debug.Log("EnemyController: OnCollisionEnter2D with " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ", layer: " + collision.gameObject.layer + ")");
         
         if (collision.gameObject.CompareTag("PlayerBullet"))
         {
@@ -119,11 +119,18 @@ public abstract class EnemyController : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            Debug.Log("EnemyController: Found PlayerController: " + (player != null ? "YES, playerNumber=" + player.playerNumber : "NO"));
+            
             if (player != null && GameManager.Instance != null)
             {
-                Debug.Log("EnemyController: Collision with Player " + player.playerNumber + " - calling TakeLife");
+                Debug.Log("EnemyController: Calling TakeLife for Player " + player.playerNumber);
                 GameManager.Instance.TakeLife(player.playerNumber);
             }
+            else if (GameManager.Instance == null)
+            {
+                Debug.LogError("EnemyController: GameManager.Instance is NULL!");
+            }
+            
             Die();
         }
     }

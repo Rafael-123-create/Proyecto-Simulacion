@@ -58,7 +58,7 @@ public class GameManager : MonoBehaviour
     {
         // Read mode from PlayerPrefs (set by menu)
         isVersusMode = PlayerPrefs.GetInt("VersusMode", 0) == 1;
-        Debug.Log("GameManager: Starting in " + (isVersusMode ? "VERSUS" : "SINGLE PLAYER") + " mode");
+        Debug.Log("GameManager: Starting in " + (isVersusMode ? "VERSUS" : "SINGLE PLAYER") + " mode | PlayerPrefs VersusMode=" + PlayerPrefs.GetInt("VersusMode", -1));
         
         if (isVersusMode && versusModeManager != null)
         {
@@ -307,7 +307,7 @@ public class GameManager : MonoBehaviour
         if (index < 0 || index >= 2) return;
 
         playerLives[index]--;
-        Debug.Log("GameManager: Player " + playerNumber + " lost a life. Remaining: " + playerLives[index]);
+        Debug.Log("GameManager: Player " + playerNumber + " lost a life. Remaining: " + playerLives[index] + " | isVersusMode: " + isVersusMode);
         
         if (OnLivesChanged != null)
         {
@@ -319,33 +319,23 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateLives(playerNumber, playerLives[index]);
         }
 
-        // Check game over condition
-        bool shouldEndGame = false;
-        
         if (isVersusMode)
         {
-            // In versus mode, game ends when ANY player loses all lives
-            // OR when both players lose all lives (depending on preference)
-            // Current behavior: end when any player reaches 0 lives
-            if (playerLives[0] <= 0 || playerLives[1] <= 0)
+            Debug.Log("GameManager: Versus mode check - P1 lives: " + playerLives[0] + ", P2 lives: " + playerLives[1]);
+            if (playerLives[0] <= 0 && playerLives[1] <= 0)
             {
-                Debug.Log("GameManager: Versus mode - Player " + playerNumber + " out of lives. P1: " + playerLives[0] + ", P2: " + playerLives[1]);
-                shouldEndGame = true;
+                Debug.Log("GameManager: Both players out of lives - ending game");
+                EndGame();
             }
         }
         else
         {
+            Debug.Log("GameManager: Single player check - P1 lives: " + playerLives[0]);
             if (playerLives[0] <= 0)
             {
                 Debug.Log("GameManager: Player 1 out of lives - ending game");
-                shouldEndGame = true;
+                EndGame();
             }
-        }
-        
-        if (shouldEndGame)
-        {
-            Debug.Log("GameManager: Ending game...");
-            EndGame();
         }
     }
 
