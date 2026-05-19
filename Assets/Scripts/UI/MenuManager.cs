@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class MenuManager : MonoBehaviour
@@ -166,12 +167,22 @@ public class MenuManager : MonoBehaviour
         }
         
         var scores = ScoreManager.GetHighScores();
+        float entryHeight = 40f;
+        float spacing = 5f;
         
         for (int i = 0; i < scores.Count; i++)
         {
             if (highScoreEntryPrefab != null)
             {
                 GameObject entry = Instantiate(highScoreEntryPrefab, highScoresContent);
+                RectTransform entryRect = entry.GetComponent<RectTransform>();
+                
+                // Manually position entries in a vertical stack from top
+                entryRect.anchorMin = new Vector2(0, 1);
+                entryRect.anchorMax = new Vector2(1, 1);
+                entryRect.pivot = new Vector2(0.5f, 1);
+                entryRect.anchoredPosition = new Vector2(0, -i * (entryHeight + spacing));
+                entryRect.sizeDelta = new Vector2(0, entryHeight);
                 
                 TextMeshProUGUI rankText = entry.transform.Find("RankText")?.GetComponent<TextMeshProUGUI>();
                 TextMeshProUGUI nameText = entry.transform.Find("NameText")?.GetComponent<TextMeshProUGUI>();
@@ -181,6 +192,14 @@ public class MenuManager : MonoBehaviour
                 if (nameText != null) nameText.text = scores[i].playerName;
                 if (scoreText != null) scoreText.text = scores[i].score.ToString() + " (" + scores[i].gameMode + ")";
             }
+        }
+        
+        // Update Content height to fit all entries
+        RectTransform contentRect = highScoresContent.GetComponent<RectTransform>();
+        if (contentRect != null)
+        {
+            float totalHeight = scores.Count * (entryHeight + spacing);
+            contentRect.sizeDelta = new Vector2(contentRect.sizeDelta.x, Mathf.Max(totalHeight, 1));
         }
         
         if (minScoreText != null)
