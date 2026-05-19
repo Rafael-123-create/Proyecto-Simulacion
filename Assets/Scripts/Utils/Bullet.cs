@@ -4,7 +4,8 @@ public class Bullet : MonoBehaviour
 {
     public float speed = 10f;
     public int damage = 1;
-    public bool isPlayerBullet = true; // Set false for enemy bullets
+    public bool isPlayerBullet = true;
+    public int ownerPlayerNumber = 1; // Set false for enemy bullets
     
     void Update()
     {
@@ -47,20 +48,18 @@ public class Bullet : MonoBehaviour
     {
         if (isPlayerBullet)
         {
-            // Player bullet hits enemy
             if (other.CompareTag("Enemy"))
             {
                 EnemyController enemy = other.GetComponent<EnemyController>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(damage);
+                    enemy.TakeDamage(damage, ownerPlayerNumber);
                 }
                 Destroy(gameObject);
             }
         }
         else
         {
-            // Enemy bullet hits player
             if (other.CompareTag("Player"))
             {
                 PlayerController player = other.GetComponent<PlayerController>();

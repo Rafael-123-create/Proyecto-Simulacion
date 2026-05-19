@@ -333,7 +333,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void EnemyDestroyed(EnemyType type) { }
+    public void EnemyDestroyed(EnemyType type, int destroyedByPlayer = 1)
+    {
+        if (isGameOver) return;
+        
+        int score = GetScoreForEnemy(type);
+        AddScore(destroyedByPlayer, score);
+        Debug.Log("GameManager: Enemy " + type + " destroyed by Player " + destroyedByPlayer + " for " + score + " points");
+    }
+    
+    int GetScoreForEnemy(EnemyType type)
+    {
+        switch (type)
+        {
+            case EnemyType.Shooter: return 10;
+            case EnemyType.Kamikaze: return 20;
+            default: return 10;
+        }
+    }
 
     public void WaveComplete() { }
 

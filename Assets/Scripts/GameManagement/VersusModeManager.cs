@@ -68,7 +68,15 @@ public class VersusModeManager : MonoBehaviour
         ConfigureCamera(player1Camera, 0);
         ConfigureCamera(player2Camera, 1);
         
-        Debug.Log("VersusModeManager: Modo versus activado");
+        // Offset Player2Camera to show the right side of the play area
+        float camHeight = 2f * player2Camera.orthographicSize;
+        float camWidth = camHeight * player2Camera.aspect;
+        float halfPlayableWidth = camWidth / 2f;
+        
+        Vector3 p1Pos = player1Camera.transform.position;
+        player2Camera.transform.position = new Vector3(p1Pos.x + halfPlayableWidth, p1Pos.y, p1Pos.z);
+        
+        Debug.Log("VersusModeManager: Modo versus activado - P2 camera offset: " + halfPlayableWidth);
     }
 
     public void DisableVersusMode()
@@ -78,9 +86,14 @@ public class VersusModeManager : MonoBehaviour
         player1Camera.rect = new Rect(0f, 0f, 1f, 1f);
         player1Camera.enabled = true;
         
+        // Reset Player1Camera position
+        player1Camera.transform.position = new Vector3(0, 0, -10);
+        
         if (player2Camera != null)
         {
             player2Camera.enabled = false;
+            // Reset Player2Camera position
+            player2Camera.transform.position = new Vector3(0, 0, -10);
         }
     }
 

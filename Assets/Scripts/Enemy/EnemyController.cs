@@ -74,41 +74,45 @@ public abstract class EnemyController : MonoBehaviour
     protected virtual void UpdateMovement() { }
     protected virtual void UpdateBehavior() { }
     
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, int fromPlayerNumber = 1)
     {
         health -= damage;
+        lastHitByPlayer = fromPlayerNumber;
         if (health <= 0)
         {
             Die();
         }
     }
     
+    private int lastHitByPlayer = 1;
+    
     protected virtual void Die()
     {
-        // Spawn explosion
         if (explosionPrefab != null)
         {
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
         
-        // Notify game manager of score (optional, we can also do via collision)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.EnemyDestroyed(type, lastHitByPlayer);
+        }
+        
         Destroy(gameObject);
     }
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Handle collision with player bullets
         if (other.CompareTag("PlayerBullet"))
         {
             Bullet bullet = other.GetComponent<Bullet>();
             if (bullet != null && bullet.isPlayerBullet)
             {
-                TakeDamage(bullet.damage);
-                Destroy(other.gameObject); // Destroy bullet
+                TakeDamage(bullet.damage, bullet.ownerPlayerNumber);
+                Destroy(other.gameObject);
             }
         }
         
-        // Handle collision with player (all enemy types damage player on contact)
         if (other.CompareTag("Player"))
         {
             PlayerController player = other.GetComponent<PlayerController>();
@@ -117,7 +121,7 @@ public abstract class EnemyController : MonoBehaviour
                 GameManager.Instance.TakeLife(player.playerNumber);
                 Debug.Log("EnemyController: Player " + player.playerNumber + " took damage from " + type);
             }
-            Die(); // Enemy dies on impact
+            Die();
         }
     }
 }
