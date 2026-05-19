@@ -172,14 +172,14 @@ public class MenuManager : MonoBehaviour
             if (highScoreEntryPrefab != null)
             {
                 GameObject entry = Instantiate(highScoreEntryPrefab, highScoresContent);
-                TextMeshProUGUI[] texts = entry.GetComponentsInChildren<TextMeshProUGUI>();
                 
-                if (texts.Length >= 3)
-                {
-                    texts[0].text = (i + 1).ToString();
-                    texts[1].text = scores[i].playerName;
-                    texts[2].text = scores[i].score.ToString() + " (" + scores[i].gameMode + ")";
-                }
+                TextMeshProUGUI rankText = entry.transform.Find("RankText")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI nameText = entry.transform.Find("NameText")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI scoreText = entry.transform.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
+                
+                if (rankText != null) rankText.text = (i + 1).ToString();
+                if (nameText != null) nameText.text = scores[i].playerName;
+                if (scoreText != null) scoreText.text = scores[i].score.ToString() + " (" + scores[i].gameMode + ")";
             }
         }
         
