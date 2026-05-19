@@ -57,6 +57,9 @@ public class Bullet : MonoBehaviour
     {
         if (GameManager.Instance != null && GameManager.Instance.IsGameOver()) return;
         
+        // Ignore collisions with other bullets
+        if (collision.gameObject.GetComponent<Bullet>() != null) return;
+        
         if (isPlayerBullet)
         {
             if (collision.gameObject.CompareTag("Enemy"))

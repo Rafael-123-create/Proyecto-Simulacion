@@ -462,7 +462,57 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(gameOverWaitTime);
         Debug.Log("GameManager: Returning to menu...");
+        
+        // Save high score before returning to menu
+        SaveHighScore();
+        
         SceneManager.LoadScene("Menu");
+    }
+    
+    void SaveHighScore()
+    {
+        string playerName = ScoreManager.GetCurrentPlayerName();
+        
+        if (isVersusMode)
+        {
+            // In versus mode, only save the winner's score
+            if (playerScores[0] > playerScores[1])
+            {
+                // Player 1 wins
+                SaveScoreForPlayer(playerName + "P1", playerScores[0], "VS");
+                Debug.Log("ScoreManager: Versus mode - Player 1 wins with " + playerScores[0] + " points");
+            }
+            else if (playerScores[1] > playerScores[0])
+            {
+                // Player 2 wins
+                SaveScoreForPlayer(playerName + "P2", playerScores[1], "VS");
+                Debug.Log("ScoreManager: Versus mode - Player 2 wins with " + playerScores[1] + " points");
+            }
+            else
+            {
+                // Tie - save both or just player 1
+                SaveScoreForPlayer(playerName + "P1", playerScores[0], "VS");
+                Debug.Log("ScoreManager: Versus mode - Tie! Saving Player 1 score: " + playerScores[0]);
+            }
+        }
+        else
+        {
+            // Single player mode
+            SaveScoreForPlayer(playerName, playerScores[0], "SP");
+        }
+    }
+    
+    void SaveScoreForPlayer(string name, int score, string mode)
+    {
+        if (score > 0 && ScoreManager.IsHighScore(score))
+        {
+            ScoreManager.SaveHighScore(name, score, mode);
+            Debug.Log("ScoreManager: New high score saved! " + name + ": " + score + " (" + mode + ")");
+        }
+        else
+        {
+            Debug.Log("ScoreManager: Score " + score + " not high enough for " + mode + " mode (min: " + ScoreManager.GetMinHighScore() + ")");
+        }
     }
 
     public void SetVersusMode(bool versus)
