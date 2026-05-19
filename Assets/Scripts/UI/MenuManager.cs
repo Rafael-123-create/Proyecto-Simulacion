@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using TMPro;
 
 public class MenuManager : MonoBehaviour
 {
@@ -12,13 +12,13 @@ public class MenuManager : MonoBehaviour
     public GameObject highScoresPanel;
 
     [Header("Name Input")]
-    public InputField nameInputField;
-    public Text nameErrorText;
+    public TMP_InputField nameInputField;
+    public TextMeshProUGUI nameErrorText;
     
     [Header("High Scores")]
     public Transform highScoresContent;
     public GameObject highScoreEntryPrefab;
-    public Text minScoreText;
+    public TextMeshProUGUI minScoreText;
 
     [Header("Game Scene")]
     public string gameSceneName = "SampleScene";
@@ -172,7 +172,7 @@ public class MenuManager : MonoBehaviour
             if (highScoreEntryPrefab != null)
             {
                 GameObject entry = Instantiate(highScoreEntryPrefab, highScoresContent);
-                Text[] texts = entry.GetComponentsInChildren<Text>();
+                TextMeshProUGUI[] texts = entry.GetComponentsInChildren<TextMeshProUGUI>();
                 
                 if (texts.Length >= 3)
                 {
