@@ -14,7 +14,20 @@ public class ShooterEnemy : EnemyController
         speed = 1.5f;
         health = 1;
         scoreValue = 10;
-        // Optionally set sprite or other visuals here
+        
+        // Adjust fire rate based on difficulty
+        // Start slow (0.3 shots/sec = ~3.3s between shots), scale up to 1.5 shots/sec
+        float difficultyScale = GetDifficultyScale();
+        fireRate = Mathf.Lerp(0.3f, 1.5f, difficultyScale);
+    }
+    
+    float GetDifficultyScale()
+    {
+        if (WaveSpawner.Instance != null)
+        {
+            return WaveSpawner.Instance.DifficultyScale;
+        }
+        return 0f;
     }
     
     public override void Update()

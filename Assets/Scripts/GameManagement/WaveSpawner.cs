@@ -15,6 +15,8 @@ public class EnemySpawnData
 
 public class WaveSpawner : MonoBehaviour
 {
+    public static WaveSpawner Instance { get; private set; }
+    
     [Header("Spawn Settings")]
     public List<EnemySpawnData> enemyTypes = new List<EnemySpawnData>();
     public Transform[] spawnPoints; // Top of screen positions
@@ -29,6 +31,21 @@ public class WaveSpawner : MonoBehaviour
     private float difficultyTimer;
     private float baseMinInterval = 1f;
     private float baseMaxInterval = 3f;
+    
+    // Public difficulty scale (0 to 1) that increases over time
+    public float DifficultyScale { get; private set; } = 0f;
+    
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
     
     void Start()
     {
@@ -61,6 +78,10 @@ public class WaveSpawner : MonoBehaviour
     void Update()
     {
         difficultyTimer += Time.deltaTime;
+        
+        // Calculate difficulty scale (0 to 1) based on elapsed time
+        // Reaches max difficulty after 3 intervals (90 seconds)
+        DifficultyScale = Mathf.Min(1f, difficultyTimer / (difficultyIncreaseInterval * 3f));
         
         // Increase difficulty over time
         if (difficultyTimer >= difficultyIncreaseInterval)

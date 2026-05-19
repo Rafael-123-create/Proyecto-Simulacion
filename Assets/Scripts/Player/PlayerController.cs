@@ -20,7 +20,8 @@ public class PlayerController : MonoBehaviour
     [Header("Shooting")]
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public float fireRate = 0.5f;
+    public float baseFireRate = 2f; // Base fire rate (shots per second)
+    public float maxFireRate = 5f;  // Max fire rate at full difficulty
     private float nextFireTime = 0f;
     
     [Header("Input")]
@@ -296,11 +297,22 @@ public class PlayerController : MonoBehaviour
     
     void HandleShooting()
     {
+        float currentFireRate = GetCurrentFireRate();
         if (shootPressed && Time.time >= nextFireTime && bulletPrefab != null && firePoint != null)
         {
             Shoot();
-            nextFireTime = Time.time + 1f / fireRate;
+            nextFireTime = Time.time + 1f / currentFireRate;
         }
+    }
+    
+    float GetCurrentFireRate()
+    {
+        float difficultyScale = 0f;
+        if (WaveSpawner.Instance != null)
+        {
+            difficultyScale = WaveSpawner.Instance.DifficultyScale;
+        }
+        return Mathf.Lerp(baseFireRate, maxFireRate, difficultyScale);
     }
     
     void Shoot()
