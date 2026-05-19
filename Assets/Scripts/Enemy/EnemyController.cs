@@ -103,6 +103,8 @@ public abstract class EnemyController : MonoBehaviour
     
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (GameManager.Instance != null && GameManager.Instance.IsGameOver()) return;
+        
         Debug.Log("EnemyController: OnCollisionEnter2D with " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ", layer: " + collision.gameObject.layer + ")");
         
         if (collision.gameObject.CompareTag("PlayerBullet"))

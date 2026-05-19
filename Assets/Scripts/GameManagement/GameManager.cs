@@ -399,10 +399,32 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return;
 
         isGameOver = true;
+        Debug.Log("GameManager: Game Over triggered!");
 
         if (waveSpawner != null)
         {
             waveSpawner.enabled = false;
+        }
+
+        // Destroy all existing enemies
+        EnemyController[] enemies = FindObjectsByType<EnemyController>();
+        foreach (EnemyController enemy in enemies)
+        {
+            Destroy(enemy.gameObject);
+        }
+
+        // Destroy all existing bullets
+        Bullet[] bullets = FindObjectsByType<Bullet>();
+        foreach (Bullet bullet in bullets)
+        {
+            Destroy(bullet.gameObject);
+        }
+
+        // Disable all player controllers to stop input
+        PlayerController[] players = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in players)
+        {
+            player.enabled = false;
         }
 
         if (uiManager != null)
@@ -416,7 +438,8 @@ public class GameManager : MonoBehaviour
     IEnumerator ReturnToMenuAfterDelay()
     {
         yield return new WaitForSeconds(gameOverWaitTime);
-        Debug.Log("Game Over.");
+        Debug.Log("GameManager: Returning to menu...");
+        SceneManager.LoadScene("Menu");
     }
 
     public void SetVersusMode(bool versus)

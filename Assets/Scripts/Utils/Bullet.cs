@@ -55,6 +55,8 @@ public class Bullet : MonoBehaviour
     
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (GameManager.Instance != null && GameManager.Instance.IsGameOver()) return;
+        
         if (isPlayerBullet)
         {
             if (collision.gameObject.CompareTag("Enemy"))
