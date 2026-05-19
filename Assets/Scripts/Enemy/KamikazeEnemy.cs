@@ -53,26 +53,52 @@ public class KamikazeEnemy : EnemyController
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         Vector2 moveDelta = Vector2.down * speed * Time.deltaTime;
         
-        if (playerTarget != null && playerTarget.gameObject != null)
+        bool shouldFindNewTarget = false;
+        
+        if (playerTarget != null)
         {
-            if (!isCharging)
+            // Check if target is still active
+            if (!playerTarget.gameObject.activeInHierarchy)
             {
-                // Check if we should start charging
-                float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
-                if (distanceToPlayer < chargeDistanceThreshold * 3f)
-                {
-                    StartCharge();
-                }
-            }
-            else
-            {
-                // Charging toward player's last known position
-                moveDelta = (Vector2)chargeDirection * chargeAcceleration * Time.deltaTime;
+                shouldFindNewTarget = true;
             }
         }
         else
         {
+            shouldFindNewTarget = true;
+        }
+        
+        if (shouldFindNewTarget)
+        {
             FindPlayerTarget();
+            if (playerTarget == null)
+            {
+                // No active players, just move down
+                if (rb != null)
+                {
+                    rb.MovePosition(rb.position + moveDelta);
+                }
+                else
+                {
+                    transform.Translate((Vector3)moveDelta);
+                }
+                return;
+            }
+        }
+        
+        if (!isCharging)
+        {
+            // Check if we should start charging
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+            if (distanceToPlayer < chargeDistanceThreshold * 3f)
+            {
+                StartCharge();
+            }
+        }
+        else
+        {
+            // Charging toward player's last known position
+            moveDelta = (Vector2)chargeDirection * chargeAcceleration * Time.deltaTime;
         }
         
         // Move using Rigidbody2D for proper collision detection

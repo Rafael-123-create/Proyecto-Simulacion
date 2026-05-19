@@ -322,6 +322,15 @@ public class GameManager : MonoBehaviour
         if (isVersusMode)
         {
             Debug.Log("GameManager: Versus mode check - P1 lives: " + playerLives[0] + ", P2 lives: " + playerLives[1]);
+            
+            // If a player reaches 0 lives, disable them but keep the game going
+            if (playerLives[index] <= 0)
+            {
+                Debug.Log("GameManager: Player " + playerNumber + " is out! Disabling player...");
+                DisablePlayer(playerNumber);
+            }
+            
+            // Game only ends when BOTH players are out
             if (playerLives[0] <= 0 && playerLives[1] <= 0)
             {
                 Debug.Log("GameManager: Both players out of lives - ending game");
@@ -335,6 +344,20 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log("GameManager: Player 1 out of lives - ending game");
                 EndGame();
+            }
+        }
+    }
+    
+    void DisablePlayer(int playerNumber)
+    {
+        PlayerController[] players = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in players)
+        {
+            if (player.playerNumber == playerNumber)
+            {
+                player.enabled = false;
+                player.gameObject.SetActive(false);
+                Debug.Log("GameManager: Disabled Player " + playerNumber + " (name: " + player.gameObject.name + ")");
             }
         }
     }
