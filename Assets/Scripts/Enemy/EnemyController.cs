@@ -101,21 +101,21 @@ public abstract class EnemyController : MonoBehaviour
         Destroy(gameObject);
     }
     
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        if (other.CompareTag("PlayerBullet"))
+        if (collision.gameObject.CompareTag("PlayerBullet"))
         {
-            Bullet bullet = other.GetComponent<Bullet>();
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
             if (bullet != null && bullet.isPlayerBullet)
             {
                 TakeDamage(bullet.damage, bullet.ownerPlayerNumber);
-                Destroy(other.gameObject);
+                Destroy(collision.gameObject);
             }
         }
         
-        if (other.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player"))
         {
-            PlayerController player = other.GetComponent<PlayerController>();
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
             if (player != null && GameManager.Instance != null)
             {
                 GameManager.Instance.TakeLife(player.playerNumber);

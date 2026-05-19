@@ -9,9 +9,18 @@ public class Bullet : MonoBehaviour
     
     void Update()
     {
-        // Move upward for player bullets, downward for enemy bullets
+        // Move using Rigidbody2D for proper collision detection
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
         Vector3 direction = isPlayerBullet ? Vector3.up : Vector3.down;
-        transform.Translate(direction * speed * Time.deltaTime);
+        
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + (Vector2)direction * speed * Time.deltaTime);
+        }
+        else
+        {
+            transform.Translate(direction * speed * Time.deltaTime);
+        }
         
         // Destroy if off screen
         Camera cam = GetActiveCamera();
@@ -44,13 +53,13 @@ public class Bullet : MonoBehaviour
         return Camera.main;
     }
     
-    void OnTriggerEnter2D(Collider2D other)
+    void OnCollisionEnter2D(Collision2D collision)
     {
         if (isPlayerBullet)
         {
-            if (other.CompareTag("Enemy"))
+            if (collision.gameObject.CompareTag("Enemy"))
             {
-                EnemyController enemy = other.GetComponent<EnemyController>();
+                EnemyController enemy = collision.gameObject.GetComponent<EnemyController>();
                 if (enemy != null)
                 {
                     enemy.TakeDamage(damage, ownerPlayerNumber);
@@ -60,9 +69,9 @@ public class Bullet : MonoBehaviour
         }
         else
         {
-            if (other.CompareTag("Player"))
+            if (collision.gameObject.CompareTag("Player"))
             {
-                PlayerController player = other.GetComponent<PlayerController>();
+                PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                 if (player != null && GameManager.Instance != null)
                 {
                     GameManager.Instance.TakeLife(player.playerNumber);

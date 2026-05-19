@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1068400019171499275}
   - component: {fileID: 8128640787791951242}
   - component: {fileID: 5515341992891671}
+  - component: {fileID: 5515341992891672}
   m_Layer: 0
   m_Name: Explosion
   m_TagString: Untagged
@@ -109,3 +110,16 @@ Animation:
   m_AnimatePhysics: 0
   m_UpdateMode: 0
   m_CullingType: 0
+--- !u!114 &5515341992891672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9116785800745039527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e025b0eadf2b8d546a88b1014ee88b1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestroyAfterTime
+  lifetime: 0.5

@@ -22,8 +22,16 @@ public class ShooterEnemy : EnemyController
         base.Update();
         if (!isInitialized) return;
         
-        // Move downward
-        transform.Translate(Vector3.down * speed * Time.deltaTime);
+        // Move downward using Rigidbody2D for proper collision detection
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + Vector2.down * speed * Time.deltaTime);
+        }
+        else
+        {
+            transform.Translate(Vector3.down * speed * Time.deltaTime);
+        }
         
         // Shooting logic
         if (Time.time >= nextFireTime)

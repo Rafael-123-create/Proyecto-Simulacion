@@ -307,6 +307,8 @@ public class GameManager : MonoBehaviour
         if (index < 0 || index >= 2) return;
 
         playerLives[index]--;
+        Debug.Log("GameManager: Player " + playerNumber + " lost a life. Remaining: " + playerLives[index]);
+        
         if (OnLivesChanged != null)
         {
             OnLivesChanged(playerNumber, playerLives[index]);
@@ -319,8 +321,10 @@ public class GameManager : MonoBehaviour
 
         if (isVersusMode)
         {
+            Debug.Log("GameManager: Versus mode - P1 lives: " + playerLives[0] + ", P2 lives: " + playerLives[1]);
             if (playerLives[0] <= 0 && playerLives[1] <= 0)
             {
+                Debug.Log("GameManager: Both players out of lives - ending game");
                 EndGame();
             }
         }
@@ -328,6 +332,7 @@ public class GameManager : MonoBehaviour
         {
             if (playerLives[0] <= 0)
             {
+                Debug.Log("GameManager: Player 1 out of lives - ending game");
                 EndGame();
             }
         }

@@ -50,35 +50,39 @@ public class KamikazeEnemy : EnemyController
     {
         if (!isInitialized) return;
         
-        // Always move downward, even without a target
-        transform.Translate(Vector3.down * speed * Time.deltaTime);
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        Vector2 moveDelta = Vector2.down * speed * Time.deltaTime;
         
-        if (playerTarget == null)
+        if (playerTarget != null && playerTarget.gameObject != null)
         {
-            FindPlayerTarget();
-            return;
-        }
-        
-        // If target destroyed, find a new one
-        if (playerTarget.gameObject == null)
-        {
-            FindPlayerTarget();
-            if (playerTarget == null) return; // No players left
-        }
-        
-        if (!isCharging)
-        {
-            // Check if we should start charging
-            float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
-            if (distanceToPlayer < chargeDistanceThreshold * 3f) // Increased threshold for better gameplay
+            if (!isCharging)
             {
-                StartCharge();
+                // Check if we should start charging
+                float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+                if (distanceToPlayer < chargeDistanceThreshold * 3f)
+                {
+                    StartCharge();
+                }
+            }
+            else
+            {
+                // Charging toward player's last known position
+                moveDelta = (Vector2)chargeDirection * chargeAcceleration * Time.deltaTime;
             }
         }
         else
         {
-            // Charging toward player's last known position
-            transform.Translate(chargeDirection * chargeAcceleration * Time.deltaTime);
+            FindPlayerTarget();
+        }
+        
+        // Move using Rigidbody2D for proper collision detection
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + moveDelta);
+        }
+        else
+        {
+            transform.Translate((Vector3)moveDelta);
         }
     }
     
