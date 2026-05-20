@@ -22,7 +22,7 @@ public class VideoBackground : MonoBehaviour
         
         videoPlayer = gameObject.AddComponent<VideoPlayer>();
         videoPlayer.playOnAwake = false;
-        videoPlayer.loop = loop;
+        videoPlayer.isLooping = loop;
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
         videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
