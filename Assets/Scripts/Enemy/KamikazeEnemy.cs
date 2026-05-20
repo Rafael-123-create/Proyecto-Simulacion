@@ -12,7 +12,7 @@ public class KamikazeEnemy : EnemyController
     {
         base.Initialize(type);
         // Kamikaze specific initialization
-        speed = 2f; // Base descent speed before charge
+        speed = 4f; // Base descent speed before charge
         health = 1;
         scoreValue = 20;
         
@@ -48,16 +48,14 @@ public class KamikazeEnemy : EnemyController
     
     public override void Update()
     {
-        if (!isInitialized) return;
-        
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        Vector2 moveDelta = Vector2.down * speed * Time.deltaTime;
-        
+        if (!isInitialized || isDead) return;
+
+        Vector3 moveDelta = Vector3.down * speed * Time.deltaTime;
+
         bool shouldFindNewTarget = false;
-        
+
         if (playerTarget != null)
         {
-            // Check if target is still active
             if (!playerTarget.gameObject.activeInHierarchy)
             {
                 shouldFindNewTarget = true;
@@ -67,28 +65,20 @@ public class KamikazeEnemy : EnemyController
         {
             shouldFindNewTarget = true;
         }
-        
+
         if (shouldFindNewTarget)
         {
             FindPlayerTarget();
             if (playerTarget == null)
             {
-                // No active players, just move down
-                if (rb != null)
-                {
-                    rb.MovePosition(rb.position + moveDelta);
-                }
-                else
-                {
-                    transform.Translate((Vector3)moveDelta);
-                }
+                transform.Translate(moveDelta);
+                CheckOffScreen();
                 return;
             }
         }
-        
+
         if (!isCharging)
         {
-            // Check if we should start charging
             float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
             if (distanceToPlayer < chargeDistanceThreshold * 3f)
             {
@@ -97,18 +87,22 @@ public class KamikazeEnemy : EnemyController
         }
         else
         {
-            // Charging toward player's last known position
-            moveDelta = (Vector2)chargeDirection * chargeAcceleration * Time.deltaTime;
+            moveDelta = chargeDirection * chargeAcceleration * Time.deltaTime;
         }
-        
-        // Move using Rigidbody2D for proper collision detection
-        if (rb != null)
+
+        transform.Translate(moveDelta);
+        CheckOffScreen();
+    }
+
+    void CheckOffScreen()
+    {
+        Camera cam = GetActiveCamera();
+        if (cam != null && transform.position.y < cam.transform.position.y - cam.orthographicSize - 2f)
         {
-            rb.MovePosition(rb.position + moveDelta);
-        }
-        else
-        {
-            transform.Translate((Vector3)moveDelta);
+            isDead = true;
+            Collider2D col = GetComponent<Collider2D>();
+            if (col != null) col.enabled = false;
+            Destroy(gameObject);
         }
     }
     

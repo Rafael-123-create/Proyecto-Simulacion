@@ -5,30 +5,31 @@ public class Bullet : MonoBehaviour
     public float speed = 10f;
     public int damage = 1;
     public bool isPlayerBullet = true;
-    public int ownerPlayerNumber = 1; // Set false for enemy bullets
-    
-    void Update()
+    public int ownerPlayerNumber = 1;
+
+    private float spawnTime;
+
+    void Start()
     {
-        // Move using Rigidbody2D for proper collision detection
+        spawnTime = Time.time;
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        Vector3 direction = isPlayerBullet ? Vector3.up : Vector3.down;
-        
         if (rb != null)
         {
-            rb.MovePosition(rb.position + (Vector2)direction * speed * Time.deltaTime);
+            rb.bodyType = RigidbodyType2D.Kinematic;
         }
-        else
-        {
-            transform.Translate(direction * speed * Time.deltaTime);
-        }
-        
-        // Destroy if off screen
+    }
+
+    void Update()
+    {
+        Vector3 direction = isPlayerBullet ? Vector3.up : Vector3.down;
+        transform.Translate(direction * speed * Time.deltaTime);
+
         Camera cam = GetActiveCamera();
         if (cam != null)
         {
             float topBound = cam.transform.position.y + cam.orthographicSize + 2f;
             float bottomBound = cam.transform.position.y - cam.orthographicSize - 2f;
-            
+
             if (isPlayerBullet && transform.position.y > topBound)
             {
                 Destroy(gameObject);
@@ -39,7 +40,7 @@ public class Bullet : MonoBehaviour
             }
         }
     }
-    
+
     Camera GetActiveCamera()
     {
         Camera[] cameras = FindObjectsByType<Camera>();
@@ -52,19 +53,25 @@ public class Bullet : MonoBehaviour
         }
         return Camera.main;
     }
-    
-    void OnCollisionEnter2D(Collision2D collision)
+
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (GameManager.Instance != null && GameManager.Instance.IsGameOver()) return;
-        
-        // Ignore collisions with other bullets
-        if (collision.gameObject.GetComponent<Bullet>() != null) return;
-        
+        if (Time.time - spawnTime < 0.1f) return;
+
+        Bullet otherBullet = other.GetComponent<Bullet>();
+        if (otherBullet != null)
+        {
+            Destroy(gameObject);
+            Destroy(otherBullet.gameObject);
+            return;
+        }
+
         if (isPlayerBullet)
         {
-            if (collision.gameObject.CompareTag("Enemy"))
+            if (other.CompareTag("Enemy"))
             {
-                EnemyController enemy = collision.gameObject.GetComponent<EnemyController>();
+                EnemyController enemy = other.GetComponent<EnemyController>();
                 if (enemy != null)
                 {
                     enemy.TakeDamage(damage, ownerPlayerNumber);
@@ -74,13 +81,12 @@ public class Bullet : MonoBehaviour
         }
         else
         {
-            if (collision.gameObject.CompareTag("Player"))
+            if (other.CompareTag("Player"))
             {
-                PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+                PlayerController player = other.GetComponent<PlayerController>();
                 if (player != null && GameManager.Instance != null)
                 {
                     GameManager.Instance.TakeLife(player.playerNumber);
-                    Debug.Log("Bullet: Player " + player.playerNumber + " hit by enemy bullet");
                 }
                 Destroy(gameObject);
             }

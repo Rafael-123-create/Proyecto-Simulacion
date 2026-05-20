@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KamikazeEnemy
   type: 1
-  speed: 2
+  speed: 4
   health: 1
   scoreValue: 20
   explosionPrefab: {fileID: 9116785800745039527, guid: d0ad888b9bf4bc340b7bf135ad6130d6, type: 3}

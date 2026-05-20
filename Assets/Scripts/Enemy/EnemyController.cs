@@ -19,6 +19,7 @@ public abstract class EnemyController : MonoBehaviour
     // Internal
     private float originalY;
     protected bool isInitialized = false;
+    protected bool isDead = false;
     
     public virtual void Initialize(EnemyType type)
     {
@@ -30,12 +31,12 @@ public abstract class EnemyController : MonoBehaviour
         switch (type)
         {
             case EnemyType.Shooter:
-                speed = 1.5f;
+                speed = 3f;
                 health = 1;
                 scoreValue = 10;
                 break;
             case EnemyType.Kamikaze:
-                speed = 3f;
+                speed = 4f;
                 health = 1;
                 scoreValue = 20;
                 break;
@@ -53,11 +54,14 @@ public abstract class EnemyController : MonoBehaviour
         Camera cam = GetActiveCamera();
         if (cam != null && transform.position.y < cam.transform.position.y - cam.orthographicSize - 2f)
         {
+            isDead = true;
+            Collider2D col = GetComponent<Collider2D>();
+            if (col != null) col.enabled = false;
             Destroy(gameObject);
         }
     }
     
-    Camera GetActiveCamera()
+    protected Camera GetActiveCamera()
     {
         bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
         
@@ -103,6 +107,9 @@ public abstract class EnemyController : MonoBehaviour
     
     protected virtual void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
         if (explosionPrefab != null)
         {
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
@@ -118,36 +125,18 @@ public abstract class EnemyController : MonoBehaviour
     
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (isDead) return;
         if (GameManager.Instance != null && GameManager.Instance.IsGameOver()) return;
-        
-        Debug.Log("EnemyController: OnCollisionEnter2D with " + collision.gameObject.name + " (tag: " + collision.gameObject.tag + ", layer: " + collision.gameObject.layer + ")");
-        
-        if (collision.gameObject.CompareTag("PlayerBullet"))
-        {
-            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
-            if (bullet != null && bullet.isPlayerBullet)
-            {
-                Debug.Log("EnemyController: Hit by player bullet from Player " + bullet.ownerPlayerNumber);
-                TakeDamage(bullet.damage, bullet.ownerPlayerNumber);
-                Destroy(collision.gameObject);
-            }
-        }
-        
+
         if (collision.gameObject.CompareTag("Player"))
         {
             PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-            Debug.Log("EnemyController: Found PlayerController: " + (player != null ? "YES, playerNumber=" + player.playerNumber : "NO"));
-            
+
             if (player != null && GameManager.Instance != null)
             {
-                Debug.Log("EnemyController: Calling TakeLife for Player " + player.playerNumber);
                 GameManager.Instance.TakeLife(player.playerNumber);
             }
-            else if (GameManager.Instance == null)
-            {
-                Debug.LogError("EnemyController: GameManager.Instance is NULL!");
-            }
-            
+
             Die();
         }
     }

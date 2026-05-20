@@ -11,14 +11,14 @@ public class ShooterEnemy : EnemyController
     {
         base.Initialize(type);
         // Shooter specific initialization
-        speed = 1.5f;
+        speed = 3f;
         health = 1;
         scoreValue = 10;
         
         // Adjust fire rate based on difficulty
         // Start slow (0.3 shots/sec = ~3.3s between shots), scale up to 1.5 shots/sec
         float difficultyScale = GetDifficultyScale();
-        fireRate = Mathf.Lerp(0.3f, 1.5f, difficultyScale);
+        fireRate = Mathf.Lerp(0.2f, 0.8f, difficultyScale);
     }
     
     float GetDifficultyScale()
@@ -35,16 +35,8 @@ public class ShooterEnemy : EnemyController
         base.Update();
         if (!isInitialized) return;
         
-        // Move downward using Rigidbody2D for proper collision detection
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        if (rb != null)
-        {
-            rb.MovePosition(rb.position + Vector2.down * speed * Time.deltaTime);
-        }
-        else
-        {
-            transform.Translate(Vector3.down * speed * Time.deltaTime);
-        }
+        // Move downward
+        transform.Translate(Vector3.down * speed * Time.deltaTime);
         
         // Shooting logic
         if (Time.time >= nextFireTime)
@@ -62,7 +54,7 @@ public class ShooterEnemy : EnemyController
             Bullet bullet = bulletObj.GetComponent<Bullet>();
             if (bullet != null)
             {
-                bullet.speed = 5f;
+                bullet.speed = 12f; // Enemy bullet speed
                 bullet.isPlayerBullet = false;
                 bullet.damage = 1;
             }

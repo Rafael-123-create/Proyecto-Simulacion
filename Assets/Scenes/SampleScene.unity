@@ -215,13 +215,13 @@ MonoBehaviour:
   - type: 0
     prefab: {fileID: 8184889780184960719, guid: 0b574bdb4a1403344a79f4163a87c631, type: 3}
     spawnWeight: 0.5
-    minSpawnInterval: 2
-    maxSpawnInterval: 5
+    minSpawnInterval: 1.5
+    maxSpawnInterval: 4
   - type: 1
     prefab: {fileID: 5383081702397667417, guid: 51f792362787d184882fb791cb2ca2db, type: 3}
     spawnWeight: 0.5
-    minSpawnInterval: 1
-    maxSpawnInterval: 4
+    minSpawnInterval: 0.8
+    maxSpawnInterval: 3
   spawnPoints:
   - {fileID: 2300000011}
   - {fileID: 2300000021}
@@ -1025,7 +1025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KamikazeEnemy
   type: 1
-  speed: 2
+  speed: 4
   health: 1
   scoreValue: 10
   explosionPrefab: {fileID: 9116785800745039527, guid: d0ad888b9bf4bc340b7bf135ad6130d6, type: 3}
@@ -1054,7 +1054,7 @@ MonoBehaviour:
   moveSpeed: 5
   maxVertical: 4
   minVertical: -4
-  maxLateralOffset: 0.8
+  maxLateralOffset: 0.3
   bulletPrefab: {fileID: 8948068594120232921, guid: 43b74ef831ff0af498c8e7267cea9da4, type: 3}
   firePoint: {fileID: 1560787125}
   fireRate: 0.5
@@ -1447,7 +1447,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShooterEnemy
   type: 0
-  speed: 2
+  speed: 3
   health: 1
   scoreValue: 10
   explosionPrefab: {fileID: 9116785800745039527, guid: d0ad888b9bf4bc340b7bf135ad6130d6, type: 3}
@@ -1724,7 +1724,7 @@ MonoBehaviour:
   moveSpeed: 5
   maxVertical: 4
   minVertical: -4
-  maxLateralOffset: 1
+  maxLateralOffset: 0.3
   bulletPrefab: {fileID: 8948068594120232921, guid: 43b74ef831ff0af498c8e7267cea9da4, type: 3}
   firePoint: {fileID: 651714482}
   fireRate: 0.5
@@ -2720,7 +2720,7 @@ Transform:
   m_GameObject: {fileID: 2300000010}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3, y: 6, z: 0}
+  m_LocalPosition: {x: -8.9, y: 6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2751,7 +2751,7 @@ Transform:
   m_GameObject: {fileID: 2300000020}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.5, y: 6, z: 0}
+  m_LocalPosition: {x: -4.5, y: 6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2813,7 +2813,7 @@ Transform:
   m_GameObject: {fileID: 2300000040}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.5, y: 6, z: 0}
+  m_LocalPosition: {x: 4.5, y: 6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2844,7 +2844,7 @@ Transform:
   m_GameObject: {fileID: 2300000050}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3, y: 6, z: 0}
+  m_LocalPosition: {x: 8.9, y: 6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
