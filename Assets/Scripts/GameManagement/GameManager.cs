@@ -405,7 +405,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("GameManager: Single player check - P1 lives: " + playerLives[0]);
             if (playerLives[0] <= 0)
             {
-                Debug.Log("GameManager: Player 1 out of lives - ending game");
+                Debug.Log("GameManager: Player 1 out of lives - calling EndGame()");
                 EndGame();
             }
         }
