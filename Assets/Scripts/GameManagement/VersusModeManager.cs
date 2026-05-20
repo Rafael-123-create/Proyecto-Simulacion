@@ -5,9 +5,12 @@ public class VersusModeManager : MonoBehaviour
     public Camera player1Camera;
     public Camera player2Camera;
     public Camera mainCamera;
+    public GameObject dividerLine; // Black line in the middle
     
     public const int Player1Layer = 8;
     public const int Player2Layer = 9;
+    
+    private GameObject dividerInstance;
 
     void Awake()
     {
@@ -92,11 +95,51 @@ public class VersusModeManager : MonoBehaviour
         player1Camera.cullingMask = p1Mask;
         player2Camera.cullingMask = p2Mask;
         
+        // Create divider line in the middle
+        CreateDividerLine();
+        
         Debug.Log("VersusModeManager: Modo versus activado 50/50 - P1 mask=" + p1Mask + ", P2 mask=" + p2Mask);
+    }
+    
+    void CreateDividerLine()
+    {
+        // Destroy existing divider if any
+        if (dividerInstance != null)
+        {
+            Destroy(dividerInstance);
+        }
+        
+        // Create a black vertical line in the middle
+        dividerInstance = new GameObject("VersusDivider");
+        dividerInstance.transform.SetParent(transform);
+        
+        SpriteRenderer renderer = dividerInstance.AddComponent<SpriteRenderer>();
+        renderer.color = Color.black;
+        renderer.sortingOrder = 100; // Render on top of everything
+        
+        // Create a 1x1 white sprite and scale it to be a thin vertical line
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f));
+        renderer.sprite = sprite;
+        
+        // Position in the middle, full height
+        dividerInstance.transform.position = new Vector3(0, 0, -5);
+        dividerInstance.transform.localScale = new Vector3(0.05f, 20f, 1); // Thin vertical line
+        
+        Debug.Log("VersusModeManager: Created divider line at x=0");
     }
 
     public void DisableVersusMode()
     {
+        // Destroy divider line
+        if (dividerInstance != null)
+        {
+            Destroy(dividerInstance);
+            dividerInstance = null;
+        }
+        
         // In single player mode, use Player1Camera as the main camera
         if (player1Camera != null)
         {

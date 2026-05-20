@@ -125,7 +125,29 @@ public class WaveSpawner : MonoBehaviour
         
         if (isVersus)
         {
-            int side = Random.Range(0, 2);
+            // Check which players are alive
+            bool p1Alive = GameManager.Instance.GetPlayerLives(1) > 0;
+            bool p2Alive = GameManager.Instance.GetPlayerLives(2) > 0;
+            
+            int side;
+            if (p1Alive && !p2Alive)
+            {
+                // Only player 1 is alive, spawn on left side
+                side = 0;
+                Debug.Log("WaveSpawner: Player 2 dead - spawning only on Player 1 side");
+            }
+            else if (!p1Alive && p2Alive)
+            {
+                // Only player 2 is alive, spawn on right side
+                side = 1;
+                Debug.Log("WaveSpawner: Player 1 dead - spawning only on Player 2 side");
+            }
+            else
+            {
+                // Both alive (or both dead, but game should be ending), spawn randomly
+                side = Random.Range(0, 2);
+            }
+            
             Transform[] sideSpawnPoints = GetSideSpawnPoints(side);
             if (sideSpawnPoints.Length == 0)
             {
