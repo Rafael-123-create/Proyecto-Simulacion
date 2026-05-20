@@ -518,6 +518,12 @@ public class GameManager : MonoBehaviour
 
         isGameOver = true;
         Debug.Log("GameManager: Game Over triggered!");
+        
+        // Play game over sound (random from 3 clips)
+        AudioHelper.PlayGameOver();
+        
+        // Stop gameplay music
+        AudioHelper.StopMusic();
 
         if (waveSpawner != null)
         {

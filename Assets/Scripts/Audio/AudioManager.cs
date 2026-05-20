@@ -5,6 +5,7 @@ public class Sound
 {
     public string name;
     public AudioClip clip;
+    public AudioClip[] clips; // Multiple clips for random playback
     [Range(0f, 1f)]
     public float volume = 1f;
     [Range(0.1f, 3f)]
@@ -14,6 +15,15 @@ public class Sound
     
     [HideInInspector]
     public AudioSource source;
+    
+    public AudioClip GetRandomClip()
+    {
+        if (clips != null && clips.Length > 0)
+        {
+            return clips[Random.Range(0, clips.Length)];
+        }
+        return clip;
+    }
 }
 
 public enum SoundType
@@ -31,12 +41,14 @@ public class AudioManager : MonoBehaviour
     public Sound gameplayMusic;
     public Sound bossMusic;
     
-    [Header("Sound Effects")]
-    public Sound shootSound;
-    public Sound explosionSound;
-    public Sound enemyDeathSound;
+    [Header("Sound Effects - Single Clip")]
     public Sound levelUpSound;
     public Sound playerDeathSound;
+    
+    [Header("Sound Effects - Random Clips")]
+    public Sound shootSound; // 2 clips
+    public Sound explosionSound; // 2 clips
+    public Sound gameOverSound; // 3 clips
     
     [Header("Volume Settings")]
     [Range(0f, 1f)]
@@ -82,9 +94,9 @@ public class AudioManager : MonoBehaviour
     
     public void PlayMusic(Sound sound)
     {
-        if (sound == null || sound.clip == null) return;
+        if (sound == null || sound.GetRandomClip() == null) return;
         
-        musicSource.clip = sound.clip;
+        musicSource.clip = sound.GetRandomClip();
         musicSource.volume = musicVolume * sound.volume;
         musicSource.pitch = sound.pitch;
         musicSource.loop = sound.loop;
@@ -103,20 +115,22 @@ public class AudioManager : MonoBehaviour
     
     public void PlaySFX(Sound sound)
     {
-        if (sound == null || sound.clip == null) return;
+        if (sound == null || sound.GetRandomClip() == null) return;
+        
+        AudioClip clipToPlay = sound.GetRandomClip();
         
         // Play SFX on a temporary source to allow overlapping sounds
         AudioSource tempSource = gameObject.AddComponent<AudioSource>();
-        tempSource.clip = sound.clip;
+        tempSource.clip = clipToPlay;
         tempSource.volume = sfxVolume * sound.volume;
         tempSource.pitch = sound.pitch;
         tempSource.loop = sound.loop;
         tempSource.Play();
         
         // Destroy the temporary source after the clip finishes
-        Destroy(tempSource, sound.clip.length);
+        Destroy(tempSource, clipToPlay.length);
         
-        Debug.Log("AudioManager: Playing SFX - " + sound.name);
+        Debug.Log("AudioManager: Playing SFX - " + sound.name + " (" + clipToPlay.name + ")");
     }
     
     public void SetMusicVolume(float volume)

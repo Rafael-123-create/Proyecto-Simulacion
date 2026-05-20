@@ -50,11 +50,11 @@ public static class AudioHelper
         }
     }
     
-    public static void PlayEnemyDeath()
+    public static void PlayGameOver()
     {
-        if (AudioManager.Instance != null && AudioManager.Instance.enemyDeathSound != null)
+        if (AudioManager.Instance != null && AudioManager.Instance.gameOverSound != null)
         {
-            AudioManager.Instance.PlaySFX(AudioManager.Instance.enemyDeathSound);
+            AudioManager.Instance.PlaySFX(AudioManager.Instance.gameOverSound);
         }
     }
     
