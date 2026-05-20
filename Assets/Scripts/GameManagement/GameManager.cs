@@ -72,17 +72,6 @@ public class GameManager : MonoBehaviour
         InitializeGame();
     }
 
-    void Update()
-    {
-        // Debug: Press F1 to force trigger Game Over
-        if (UnityEngine.InputSystem.Keyboard.current != null && 
-            UnityEngine.InputSystem.Keyboard.current.f1Key.wasPressedThisFrame)
-        {
-            Debug.Log("GameManager: DEBUG - Force triggering Game Over");
-            EndGame();
-        }
-    }
-
     void InitializeGame()
     {
         currentLevel = 0;
@@ -370,7 +359,6 @@ public class GameManager : MonoBehaviour
         if (index < 0 || index >= 2) return;
 
         playerLives[index]--;
-        Debug.Log("GameManager: Player " + playerNumber + " lost a life. Remaining: " + playerLives[index] + " | isVersusMode: " + isVersusMode);
         
         if (OnLivesChanged != null)
         {
@@ -384,28 +372,22 @@ public class GameManager : MonoBehaviour
 
         if (isVersusMode)
         {
-            Debug.Log("GameManager: Versus mode check - P1 lives: " + playerLives[0] + ", P2 lives: " + playerLives[1]);
-            
             // If a player reaches 0 lives, disable them but keep the game going
             if (playerLives[index] <= 0)
             {
-                Debug.Log("GameManager: Player " + playerNumber + " is out! Disabling player...");
                 DisablePlayer(playerNumber);
             }
             
             // Game only ends when BOTH players are out
             if (playerLives[0] <= 0 && playerLives[1] <= 0)
             {
-                Debug.Log("GameManager: Both players out of lives - ending game");
                 EndGame();
             }
         }
         else
         {
-            Debug.Log("GameManager: Single player check - P1 lives: " + playerLives[0]);
             if (playerLives[0] <= 0)
             {
-                Debug.Log("GameManager: Player 1 out of lives - calling EndGame()");
                 EndGame();
             }
         }
@@ -482,8 +464,6 @@ public class GameManager : MonoBehaviour
 
     void EndGame()
     {
-        Debug.Log("GameManager: EndGame() called! isGameOver=" + isGameOver);
-        
         if (isGameOver) return;
 
         isGameOver = true;
@@ -524,7 +504,6 @@ public class GameManager : MonoBehaviour
         
         if (GameOverScreen.Instance != null)
         {
-            Debug.Log("GameManager: Calling ShowGameOver...");
             GameOverScreen.Instance.ShowGameOver(playerScores[0], playerScores[1], isVersusMode);
         }
         else

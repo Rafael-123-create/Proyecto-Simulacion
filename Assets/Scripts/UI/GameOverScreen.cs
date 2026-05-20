@@ -76,8 +76,6 @@ public class GameOverScreen : MonoBehaviour
 
     public void ShowGameOver(int player1Score, int player2Score, bool versusMode)
     {
-        Debug.Log("GameOverScreen: ShowGameOver called - P1: " + player1Score + ", P2: " + player2Score + ", Versus: " + versusMode);
-        
         if (panel == null)
         {
             Debug.LogError("GameOverScreen: panel is null!");

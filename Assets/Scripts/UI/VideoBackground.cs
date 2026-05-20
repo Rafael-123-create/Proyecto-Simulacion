@@ -20,11 +20,17 @@ public class VideoBackground : MonoBehaviour
     {
         rawImage = GetComponent<RawImage>();
         
+        if (rawImage == null)
+        {
+            Debug.LogError("VideoBackground: RawImage component not found!");
+            return;
+        }
+        
         videoPlayer = gameObject.AddComponent<VideoPlayer>();
         videoPlayer.playOnAwake = false;
         videoPlayer.isLooping = loop;
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-        videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
+        videoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
 
         renderTexture = new RenderTexture(1920, 1080, 0);
@@ -41,7 +47,7 @@ public class VideoBackground : MonoBehaviour
 
     void Start()
     {
-        if (videoClip != null && videoPlayer.clip == null)
+        if (videoClip != null && videoPlayer != null && videoPlayer.clip == null)
         {
             videoPlayer.clip = videoClip;
             videoPlayer.Play();
