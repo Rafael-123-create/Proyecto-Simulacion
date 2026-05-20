@@ -482,6 +482,8 @@ public class GameManager : MonoBehaviour
 
     void EndGame()
     {
+        Debug.Log("GameManager: EndGame() called! isGameOver=" + isGameOver);
+        
         if (isGameOver) return;
 
         isGameOver = true;
@@ -518,9 +520,16 @@ public class GameManager : MonoBehaviour
             uiManager.ShowGameOverUI(playerScores[0], playerScores[1], isVersusMode);
         }
 
+        Debug.Log("GameManager: GameOverScreen.Instance = " + (GameOverScreen.Instance != null ? "NOT NULL" : "NULL"));
+        
         if (GameOverScreen.Instance != null)
         {
+            Debug.Log("GameManager: Calling ShowGameOver...");
             GameOverScreen.Instance.ShowGameOver(playerScores[0], playerScores[1], isVersusMode);
+        }
+        else
+        {
+            Debug.LogError("GameManager: GameOverScreen.Instance is NULL! Cannot show game over screen.");
         }
 
         // Don't auto-return to menu - let player use buttons or R key
