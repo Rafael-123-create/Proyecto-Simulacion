@@ -97,7 +97,18 @@ public class VersusModeManager : MonoBehaviour
 
     public void DisableVersusMode()
     {
-        if (mainCamera != null)
+        // In single player mode, use Player1Camera as the main camera
+        if (player1Camera != null)
+        {
+            player1Camera.enabled = true;
+            player1Camera.rect = new Rect(0f, 0f, 1f, 1f);
+            player1Camera.transform.position = new Vector3(0, 0, -10);
+            player1Camera.cullingMask = ~0; // Render all layers
+            player1Camera.orthographicSize = 5f;
+            
+            Debug.Log("VersusModeManager: Single player mode - using Player1Camera as main camera");
+        }
+        else if (mainCamera != null)
         {
             mainCamera.enabled = true;
             mainCamera.rect = new Rect(0f, 0f, 1f, 1f);
@@ -105,12 +116,6 @@ public class VersusModeManager : MonoBehaviour
             mainCamera.cullingMask = ~0;
         }
 
-        if (player1Camera != null)
-        {
-            player1Camera.enabled = false;
-            player1Camera.cullingMask = ~0;
-        }
-        
         if (player2Camera != null)
         {
             player2Camera.enabled = false;
