@@ -222,14 +222,19 @@ public class WaveSpawner : MonoBehaviour
     {
         if (enemyTypes.Count == 0) return;
         
-        int currentLevel = GameManager.Instance != null ? GameManager.Instance.GetCurrentLevel() : 0;
-        float levelMultiplier = 1f - (currentLevel * 0.15f);
+        float minInterval = baseMinInterval - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
+        float maxInterval = baseMaxInterval - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
         
-        float minInterval = baseMinInterval * levelMultiplier - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
-        float maxInterval = baseMaxInterval * levelMultiplier - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
+        // In versus mode, spawn enemies 1.25x faster
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+        float versusMultiplier = isVersus ? 0.8f : 1f; // 0.8 = 1/1.25 (faster spawns)
         
-        minInterval = Mathf.Max(0.15f, minInterval);
-        maxInterval = Mathf.Max(minInterval + 0.15f, maxInterval);
+        minInterval *= versusMultiplier;
+        maxInterval *= versusMultiplier;
+        
+        // Clamp intervals to reasonable values
+        minInterval = Mathf.Max(0.2f, minInterval);
+        maxInterval = Mathf.Max(minInterval + 0.2f, maxInterval);
         
         currentSpawnTimer = Random.Range(minInterval, maxInterval);
     }
