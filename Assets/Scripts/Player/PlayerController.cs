@@ -320,11 +320,8 @@ public class PlayerController : MonoBehaviour
             bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
             if (isVersus)
             {
-                int bulletLayer = playerNumber == 1 ? LayerMask.NameToLayer("Player1") : LayerMask.NameToLayer("Player2");
-                if (bulletLayer >= 0)
-                {
-                    bullet.layer = bulletLayer;
-                }
+                int bulletLayer = playerNumber == 1 ? VersusModeManager.Player1Layer : VersusModeManager.Player2Layer;
+                bullet.layer = bulletLayer;
             }
         }
     }

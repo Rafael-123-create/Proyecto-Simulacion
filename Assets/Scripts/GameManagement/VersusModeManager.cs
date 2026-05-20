@@ -5,6 +5,9 @@ public class VersusModeManager : MonoBehaviour
     public Camera player1Camera;
     public Camera player2Camera;
     public Camera mainCamera;
+    
+    public const int Player1Layer = 8;
+    public const int Player2Layer = 9;
 
     void Awake()
     {
@@ -70,8 +73,8 @@ public class VersusModeManager : MonoBehaviour
         player1Camera.enabled = true;
         player2Camera.enabled = true;
 
-        player1Camera.rect = new Rect(0f, 0f, 0.5f, 1f);
-        player2Camera.rect = new Rect(0.5f, 0f, 0.5f, 1f);
+        player1Camera.rect = new Rect(0f, 0f, 0.48f, 1f);
+        player2Camera.rect = new Rect(0.52f, 0f, 0.48f, 1f);
 
         ConfigureCamera(player1Camera, 0);
         ConfigureCamera(player2Camera, 1);
@@ -83,19 +86,13 @@ public class VersusModeManager : MonoBehaviour
         player1Camera.transform.position = new Vector3(-halfWidth * 0.5f, 0f, -10f);
         player2Camera.transform.position = new Vector3(halfWidth * 0.5f, 0f, -10f);
         
-        int player1Layer = LayerMask.NameToLayer("Player1");
-        int player2Layer = LayerMask.NameToLayer("Player2");
+        int p1Mask = (1 << Player1Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
+        int p2Mask = (1 << Player2Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
         
-        if (player1Layer >= 0)
-        {
-            player1Camera.cullingMask = (1 << player1Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
-        }
-        if (player2Layer >= 0)
-        {
-            player2Camera.cullingMask = (1 << player2Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
-        }
+        player1Camera.cullingMask = p1Mask;
+        player2Camera.cullingMask = p2Mask;
         
-        Debug.Log("VersusModeManager: Modo versus activado 50/50 - P1 at x=" + player1Camera.transform.position.x + ", P2 at x=" + player2Camera.transform.position.x);
+        Debug.Log("VersusModeManager: Modo versus activado 50/50 - P1 mask=" + p1Mask + ", P2 mask=" + p2Mask);
     }
 
     public void DisableVersusMode()

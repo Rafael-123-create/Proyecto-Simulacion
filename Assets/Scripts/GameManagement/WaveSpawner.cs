@@ -135,11 +135,8 @@ public class WaveSpawner : MonoBehaviour
             Transform spawnPoint = sideSpawnPoints[Random.Range(0, sideSpawnPoints.Length)];
             GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
             
-            int enemyLayer = side == 0 ? LayerMask.NameToLayer("Player1") : LayerMask.NameToLayer("Player2");
-            if (enemyLayer >= 0)
-            {
-                enemyObj.layer = enemyLayer;
-            }
+            int enemyLayer = side == 0 ? VersusModeManager.Player1Layer : VersusModeManager.Player2Layer;
+            enemyObj.layer = enemyLayer;
             
             Debug.Log("WaveSpawner: Spawned " + selected.type + " for Player " + (side + 1) + " at " + spawnPoint.position);
             EnemyController enemy = enemyObj.GetComponent<EnemyController>();

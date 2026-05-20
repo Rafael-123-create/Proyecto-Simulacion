@@ -168,13 +168,13 @@ public class GameManager : MonoBehaviour
                         existingPlayers[0].playerNumber = 1;
                         existingPlayers[0].gameObject.name = "Player1";
                         existingPlayers[0].gameObject.tag = "Player";
-                        existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player1");
+                        existingPlayers[0].gameObject.layer = VersusModeManager.Player1Layer;
                         existingPlayers[0].gameObject.SetActive(true);
                         
                         existingPlayers[1].playerNumber = 2;
                         existingPlayers[1].gameObject.name = "Player2";
                         existingPlayers[1].gameObject.tag = "Player";
-                        existingPlayers[1].gameObject.layer = LayerMask.NameToLayer("Player2");
+                        existingPlayers[1].gameObject.layer = VersusModeManager.Player2Layer;
                         existingPlayers[1].gameObject.SetActive(true);
                     }
                     else
@@ -182,13 +182,13 @@ public class GameManager : MonoBehaviour
                         existingPlayers[1].playerNumber = 1;
                         existingPlayers[1].gameObject.name = "Player1";
                         existingPlayers[1].gameObject.tag = "Player";
-                        existingPlayers[1].gameObject.layer = LayerMask.NameToLayer("Player1");
+                        existingPlayers[1].gameObject.layer = VersusModeManager.Player1Layer;
                         existingPlayers[1].gameObject.SetActive(true);
                         
                         existingPlayers[0].playerNumber = 2;
                         existingPlayers[0].gameObject.name = "Player2";
                         existingPlayers[0].gameObject.tag = "Player";
-                        existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player2");
+                        existingPlayers[0].gameObject.layer = VersusModeManager.Player2Layer;
                         existingPlayers[0].gameObject.SetActive(true);
                     }
                     
@@ -203,7 +203,7 @@ public class GameManager : MonoBehaviour
                     existingPlayers[0].playerNumber = 1;
                     existingPlayers[0].gameObject.name = "Player1";
                     existingPlayers[0].gameObject.tag = "Player";
-                    existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player1");
+                    existingPlayers[0].gameObject.layer = VersusModeManager.Player1Layer;
                     existingPlayers[0].gameObject.SetActive(true);
                     existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
                     
@@ -211,7 +211,7 @@ public class GameManager : MonoBehaviour
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     player2Obj.name = "Player2";
                     player2Obj.tag = "Player";
-                    player2Obj.layer = LayerMask.NameToLayer("Player2");
+                    player2Obj.layer = VersusModeManager.Player2Layer;
                     PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
                     if (pc2 != null) pc2.playerNumber = 2;
                     Debug.Log("GameManager: Versus mode - Spawned Player2 from prefab");
@@ -222,7 +222,7 @@ public class GameManager : MonoBehaviour
                     GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
                     player1Obj.name = "Player1";
                     player1Obj.tag = "Player";
-                    player1Obj.layer = LayerMask.NameToLayer("Player1");
+                    player1Obj.layer = VersusModeManager.Player1Layer;
                     PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
                     if (pc1 != null) pc1.playerNumber = 1;
                     
@@ -230,7 +230,7 @@ public class GameManager : MonoBehaviour
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     player2Obj.name = "Player2";
                     player2Obj.tag = "Player";
-                    player2Obj.layer = LayerMask.NameToLayer("Player2");
+                    player2Obj.layer = VersusModeManager.Player2Layer;
                     PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
                     if (pc2 != null) pc2.playerNumber = 2;
                     Debug.Log("GameManager: Versus mode - Spawned both players from prefabs");
