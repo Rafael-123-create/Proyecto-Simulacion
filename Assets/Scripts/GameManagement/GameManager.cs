@@ -208,6 +208,126 @@ public class GameManager : MonoBehaviour
                 {
                     if (existingPlayers[0].transform.position.x < existingPlayers[1].transform.position.x)
                     {
+                        SetupPlayer(existingPlayers[0], 1, VersusModeManager.Player1Layer);
+                        SetupPlayer(existingPlayers[1], 2, VersusModeManager.Player2Layer);
+                    }
+                    else
+                    {
+                        SetupPlayer(existingPlayers[1], 1, VersusModeManager.Player1Layer);
+                        SetupPlayer(existingPlayers[0], 2, VersusModeManager.Player2Layer);
+                    }
+                    
+                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
+                    existingPlayers[1].transform.position = new Vector3(2f, -3f, 0f);
+                    
+                    Debug.Log("GameManager: Versus mode - Player1 at " + existingPlayers[0].transform.position + 
+                             ", Player2 at " + existingPlayers[1].transform.position);
+                }
+                else if (playerCount == 1 && player2Prefab != null)
+                {
+                    SetupPlayer(existingPlayers[0], 1, VersusModeManager.Player1Layer);
+                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
+                    
+                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+                    SetupPlayerObject(player2Obj, 2, VersusModeManager.Player2Layer);
+                    Debug.Log("GameManager: Versus mode - Spawned Player2 from prefab");
+                }
+                else if (player2Prefab != null)
+                {
+                    Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
+                    GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
+                    SetupPlayerObject(player1Obj, 1, VersusModeManager.Player1Layer);
+                    
+                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+                    SetupPlayerObject(player2Obj, 2, VersusModeManager.Player2Layer);
+                    Debug.Log("GameManager: Versus mode - Spawned both players from prefabs");
+                }
+            }
+            else
+            {
+                // Single player mode: only enable Player 1, disable Player 2
+                if (playerCount >= 1)
+                {
+                    existingPlayers[0].playerNumber = 1;
+                    existingPlayers[0].gameObject.name = "Player1";
+                    existingPlayers[0].gameObject.tag = "Player";
+                    SetLayerRecursively(existingPlayers[0].gameObject, 0); // Default layer
+                    existingPlayers[0].gameObject.SetActive(true);
+                    existingPlayers[0].transform.position = new Vector3(0f, -3f, 0f);
+                }
+                
+                // Disable any additional players
+                for (int i = 1; i < playerCount; i++)
+                {
+                    Debug.Log("GameManager: Disabling extra player " + i);
+                    existingPlayers[i].gameObject.SetActive(false);
+                }
+            }
+            
+            return;
+        }
+
+        // Spawn from prefabs
+        PlayerController[] playersToDestroy = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in playersToDestroy)
+        {
+            Destroy(player.gameObject);
+        }
+
+        if (player1Prefab != null)
+        {
+            Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
+            GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
+            player1Obj.name = "Player1";
+            PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
+            if (pc1 != null) pc1.playerNumber = 1;
+        }
+
+        if (player2Prefab != null && isVersusMode)
+        {
+            Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+            GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
+            player2Obj.name = "Player2";
+            PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
+            if (pc2 != null) pc2.playerNumber = 2;
+        }
+    }
+    
+    void SetupPlayer(PlayerController player, int playerNumber, int layer)
+    {
+        player.playerNumber = playerNumber;
+        player.gameObject.name = "Player" + playerNumber;
+        player.gameObject.tag = "Player";
+        SetLayerRecursively(player.gameObject, layer);
+        player.gameObject.SetActive(true);
+    }
+    
+    void SetupPlayerObject(GameObject playerObj, int playerNumber, int layer)
+    {
+        playerObj.name = "Player" + playerNumber;
+        playerObj.tag = "Player";
+        SetLayerRecursively(playerObj, layer);
+        PlayerController pc = playerObj.GetComponent<PlayerController>();
+        if (pc != null) pc.playerNumber = playerNumber;
+    }
+    
+    void SetLayerRecursively(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursively(child.gameObject, layer);
+        }
+    }
+            
+            if (isVersusMode)
+            {
+                if (playerCount >= 2)
+                {
+                    if (existingPlayers[0].transform.position.x < existingPlayers[1].transform.position.x)
+                    {
                         existingPlayers[0].playerNumber = 1;
                         existingPlayers[0].gameObject.name = "Player1";
                         existingPlayers[0].gameObject.tag = "Player";
