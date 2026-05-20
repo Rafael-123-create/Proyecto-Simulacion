@@ -507,7 +507,13 @@ public class GameManager : MonoBehaviour
             uiManager.ShowGameOverUI(playerScores[0], playerScores[1], isVersusMode);
         }
 
-        StartCoroutine(ReturnToMenuAfterDelay());
+        if (GameOverScreen.Instance != null)
+        {
+            GameOverScreen.Instance.ShowGameOver(playerScores[0], playerScores[1], isVersusMode);
+        }
+
+        // Don't auto-return to menu - let player use buttons or R key
+        // StartCoroutine(ReturnToMenuAfterDelay());
     }
 
     IEnumerator ReturnToMenuAfterDelay()
