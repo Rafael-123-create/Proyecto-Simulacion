@@ -15,7 +15,6 @@ public class GameOverScreen : MonoBehaviour
     public TMP_Text highScoreText;
 
     [Header("Buttons")]
-    public Button restartButton;
     public Button menuButton;
 
     [Header("Visual Effects")]
@@ -43,7 +42,6 @@ public class GameOverScreen : MonoBehaviour
     void Start()
     {
         if (panel != null) panel.SetActive(false);
-        if (restartButton != null) restartButton.onClick.AddListener(OnRestart);
         if (menuButton != null)
         {
             menuButton.interactable = false;
@@ -86,12 +84,6 @@ public class GameOverScreen : MonoBehaviour
         isShowing = true;
         canReturnToMenu = false;
         pulseTime = 0f;
-
-        // Hide restart button in versus mode (has collision issues), keep menu button
-        if (restartButton != null)
-        {
-            restartButton.gameObject.SetActive(!versusMode);
-        }
 
         // Reset elements for animation
         if (panelImage != null)
@@ -194,12 +186,7 @@ public class GameOverScreen : MonoBehaviour
 
         yield return new WaitForSeconds(0.2f);
 
-        // Scale in buttons
-        if (restartButton != null)
-            StartCoroutine(ScaleIn(restartButton.GetComponent<RectTransform>(), 0.3f));
-
-        yield return new WaitForSeconds(0.1f);
-
+        // Scale in menu button
         if (menuButton != null)
             StartCoroutine(ScaleIn(menuButton.GetComponent<RectTransform>(), 0.3f));
     }
@@ -220,15 +207,6 @@ public class GameOverScreen : MonoBehaviour
             yield return null;
         }
         rect.localScale = endScale;
-    }
-
-    void OnRestart()
-    {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.RestartGame();
-        }
-        Hide();
     }
 
     void OnMenu()
