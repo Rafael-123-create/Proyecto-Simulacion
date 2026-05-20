@@ -10,15 +10,16 @@ public class ShooterEnemy : EnemyController
     public override void Initialize(EnemyType type)
     {
         base.Initialize(type);
-        // Shooter specific initialization
         speed = 3f;
         health = 1;
         scoreValue = 10;
         
-        // Adjust fire rate based on difficulty
-        // Start slow (0.3 shots/sec = ~3.3s between shots), scale up to 1.5 shots/sec
         float difficultyScale = GetDifficultyScale();
-        fireRate = Mathf.Lerp(0.2f, 0.8f, difficultyScale);
+        int currentLevel = GameManager.Instance != null ? GameManager.Instance.GetCurrentLevel() : 0;
+        float levelMultiplier = 1f + (currentLevel * 0.25f);
+        
+        speed *= levelMultiplier;
+        fireRate = Mathf.Lerp(0.2f, 0.8f, difficultyScale) * levelMultiplier;
     }
     
     float GetDifficultyScale()

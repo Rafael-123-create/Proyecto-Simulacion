@@ -12,6 +12,7 @@ public class UIManager : MonoBehaviour
     public TMP_Text player1LivesText;
     public TMP_Text player2LivesText;
     public TMP_Text levelText;
+    public TMP_Text scoreTargetText;
     public TMP_Text getReadyText;
     public TMP_Text levelCompleteText;
     public TMP_Text gameOverText;
@@ -76,6 +77,15 @@ public class UIManager : MonoBehaviour
         if (levelText != null)
         {
             levelText.text = "Level: " + level;
+        }
+    }
+
+    public void UpdateScoreTarget(int currentScore, int targetScore)
+    {
+        if (scoreTargetText != null)
+        {
+            int remaining = Mathf.Max(0, targetScore - currentScore);
+            scoreTargetText.text = "Target: " + targetScore + " | Remaining: " + remaining;
         }
     }
 

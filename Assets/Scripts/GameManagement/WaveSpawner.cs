@@ -22,15 +22,17 @@ public class WaveSpawner : MonoBehaviour
     public Transform[] spawnPoints;
     public float initialSpawnDelay = 2f;
     public float difficultyIncreaseInterval = 30f;
-    public float levelDuration = 60f;
+    
+    [Header("Level Settings")]
+    public int[] scoreThresholds = { 500, 1200, 2500 };
     
     [Header("Difficulty Settings")]
     public float speedIncreasePerInterval = 0.2f;
     public float spawnRateIncreasePerInterval = 0.1f;
+    public int maxConcurrentEnemies = 15;
     
     private float currentSpawnTimer;
     private float difficultyTimer;
-    private float levelTimer;
     private float baseMinInterval = 1f;
     private float baseMaxInterval = 3f;
     private bool levelEnded = false;
@@ -75,7 +77,6 @@ public class WaveSpawner : MonoBehaviour
         
         currentSpawnTimer = initialSpawnDelay;
         difficultyTimer = 0f;
-        levelTimer = 0f;
         levelEnded = false;
     }
     
@@ -83,7 +84,6 @@ public class WaveSpawner : MonoBehaviour
     {
         if (levelEnded) return;
         
-        levelTimer += Time.deltaTime;
         difficultyTimer += Time.deltaTime;
         
         DifficultyScale = Mathf.Min(1f, difficultyTimer / (difficultyIncreaseInterval * 3f));
@@ -94,16 +94,22 @@ public class WaveSpawner : MonoBehaviour
             IncreaseDifficulty();
         }
         
-        if (levelTimer >= levelDuration)
+        int currentLevel = GameManager.Instance != null ? GameManager.Instance.GetCurrentLevel() : 0;
+        int totalScore = GameManager.Instance != null ? GameManager.Instance.GetPlayerScore(1) + GameManager.Instance.GetPlayerScore(2) : 0;
+        
+        if (currentLevel < scoreThresholds.Length && totalScore >= scoreThresholds[currentLevel])
         {
             levelEnded = true;
-            Debug.Log("WaveSpawner: Level duration reached (" + levelDuration + "s). Completing level...");
+            Debug.Log("WaveSpawner: Score threshold reached! Level " + (currentLevel + 1) + " complete (Score: " + totalScore + "/" + scoreThresholds[currentLevel] + ")");
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.LevelComplete();
             }
             return;
         }
+        
+        int enemyCount = FindObjectsByType<EnemyController>().Length;
+        if (enemyCount >= maxConcurrentEnemies) return;
         
         currentSpawnTimer -= Time.deltaTime;
         if (currentSpawnTimer <= 0f)
@@ -216,28 +222,29 @@ public class WaveSpawner : MonoBehaviour
     {
         if (enemyTypes.Count == 0) return;
         
-        // Use the selected enemy's interval or average? Let's use a global interval that we adjust.
-        float minInterval = baseMinInterval - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
-        float maxInterval = baseMaxInterval - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
+        int currentLevel = GameManager.Instance != null ? GameManager.Instance.GetCurrentLevel() : 0;
+        float levelMultiplier = 1f - (currentLevel * 0.15f);
         
-        // Clamp intervals to reasonable values
-        minInterval = Mathf.Max(0.2f, minInterval);
-        maxInterval = Mathf.Max(minInterval + 0.2f, maxInterval);
+        float minInterval = baseMinInterval * levelMultiplier - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
+        float maxInterval = baseMaxInterval * levelMultiplier - (difficultyTimer / difficultyIncreaseInterval) * spawnRateIncreasePerInterval;
+        
+        minInterval = Mathf.Max(0.15f, minInterval);
+        maxInterval = Mathf.Max(minInterval + 0.15f, maxInterval);
         
         currentSpawnTimer = Random.Range(minInterval, maxInterval);
     }
     
     void IncreaseDifficulty()
     {
-        Debug.Log("Difficulty increased!");
+        Debug.Log("Difficulty increased! Spawn rate faster, enemies faster.");
     }
     
     public void ResetLevel()
     {
-        levelTimer = 0f;
         difficultyTimer = 0f;
         levelEnded = false;
         DifficultyScale = 0f;
+        currentSpawnTimer = initialSpawnDelay;
     }
     
     EnemySpawnData SelectWeightedRandom(List<EnemySpawnData> list)

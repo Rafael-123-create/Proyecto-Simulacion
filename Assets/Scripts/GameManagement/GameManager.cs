@@ -89,6 +89,9 @@ public class GameManager : MonoBehaviour
             uiManager.UpdateLives(1, playerLives[0]);
             uiManager.UpdateLives(2, playerLives[1]);
             uiManager.SetLevelText(currentLevel + 1);
+            
+            int[] thresholds = waveSpawner != null ? waveSpawner.scoreThresholds : new int[] { 500, 1200, 2500 };
+            uiManager.UpdateScoreTarget(0, thresholds[0]);
         }
 
         StartLevel();
@@ -388,6 +391,11 @@ public class GameManager : MonoBehaviour
         if (uiManager != null)
         {
             uiManager.UpdateScore(playerNumber, playerScores[index]);
+            
+            int totalScore = playerScores[0] + playerScores[1];
+            int[] thresholds = waveSpawner != null ? waveSpawner.scoreThresholds : new int[] { 500, 1200, 2500 };
+            int targetScore = currentLevel < thresholds.Length ? thresholds[currentLevel] : thresholds[thresholds.Length - 1];
+            uiManager.UpdateScoreTarget(totalScore, targetScore);
         }
     }
 
@@ -625,6 +633,7 @@ public class GameManager : MonoBehaviour
 
     public bool IsVersusMode() { return isVersusMode; }
     public bool IsGameOver() { return isGameOver; }
+    public int GetCurrentLevel() { return currentLevel; }
     public int GetPlayerScore(int playerNumber) { return playerScores[playerNumber - 1]; }
     public int GetPlayerLives(int playerNumber) { return playerLives[playerNumber - 1]; }
 }

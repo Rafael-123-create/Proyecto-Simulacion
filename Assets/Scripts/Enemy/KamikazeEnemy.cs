@@ -11,12 +11,17 @@ public class KamikazeEnemy : EnemyController
     public override void Initialize(EnemyType type)
     {
         base.Initialize(type);
-        // Kamikaze specific initialization
-        speed = 4f; // Base descent speed before charge
+        speed = 4f;
         health = 1;
         scoreValue = 20;
         
-        // Find the closest player (in versus mode) or any player
+        int currentLevel = GameManager.Instance != null ? GameManager.Instance.GetCurrentLevel() : 0;
+        float levelMultiplier = 1f + (currentLevel * 0.25f);
+        
+        speed *= levelMultiplier;
+        chargeAcceleration *= levelMultiplier;
+        chargeDistanceThreshold *= (1f + currentLevel * 0.1f);
+        
         FindPlayerTarget();
     }
     
