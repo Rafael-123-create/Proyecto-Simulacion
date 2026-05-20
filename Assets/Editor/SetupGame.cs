@@ -26,7 +26,16 @@ public static class SetupGameTools
             if (existingSr != null)
             {
                 existingSr.sprite = bgSprite;
-                Debug.Log("Updated existing background sprite");
+                existingSr.sortingLayerName = "Default";
+                existingSr.sortingOrder = -1000;
+                existingBg.layer = 0;
+                
+                if (existingBg.GetComponent<BackgroundRenderer>() == null)
+                {
+                    existingBg.AddComponent<BackgroundRenderer>();
+                }
+                
+                Debug.Log("Updated existing background sprite and sorting order");
             }
             return;
         }
@@ -45,8 +54,11 @@ public static class SetupGameTools
         // Add SpriteRenderer
         SpriteRenderer sr = bgObj.AddComponent<SpriteRenderer>();
         sr.sprite = bgSprite;
-        sr.sortingOrder = -100;
-        sr.sortingLayerName = "Background";
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = -1000;
+        
+        // Add BackgroundRenderer to ensure it stays behind everything
+        bgObj.AddComponent<BackgroundRenderer>();
         
         // Scale to cover the view
         sr.drawMode = SpriteDrawMode.Tiled;
