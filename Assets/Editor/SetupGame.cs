@@ -22,10 +22,10 @@ public static class SetupGameTools
         if (existingBg != null)
         {
             Debug.Log("Background already exists: " + existingBg.name);
-            SpriteRenderer sr = existingBg.GetComponent<SpriteRenderer>();
-            if (sr != null)
+            SpriteRenderer existingSr = existingBg.GetComponent<SpriteRenderer>();
+            if (existingSr != null)
             {
-                sr.sprite = bgSprite;
+                existingSr.sprite = bgSprite;
                 Debug.Log("Updated existing background sprite");
             }
             return;
