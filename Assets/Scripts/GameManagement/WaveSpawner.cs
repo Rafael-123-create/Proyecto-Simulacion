@@ -169,19 +169,14 @@ public class WaveSpawner : MonoBehaviour
                 side = Random.Range(0, 2);
             }
             
-            Transform[] sideSpawnPoints = GetSideSpawnPoints(side);
-            if (sideSpawnPoints.Length == 0)
-            {
-                Debug.LogWarning("WaveSpawner: No spawn points for side " + side);
-                return;
-            }
-            Transform spawnPoint = sideSpawnPoints[Random.Range(0, sideSpawnPoints.Length)];
-            GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
+            // Calculate spawn position based on player lanes
+            Vector3 spawnPosition = GetVersusSpawnPosition(side);
+            GameObject enemyObj = Instantiate(selected.prefab, spawnPosition, Quaternion.identity);
             
             int enemyLayer = side == 0 ? VersusModeManager.Player1Layer : VersusModeManager.Player2Layer;
             enemyObj.layer = enemyLayer;
             
-            Debug.Log("WaveSpawner: Spawned " + selected.type + " for Player " + (side + 1) + " at " + spawnPoint.position);
+            Debug.Log("WaveSpawner: Spawned " + selected.type + " for Player " + (side + 1) + " at " + spawnPosition);
             EnemyController enemy = enemyObj.GetComponent<EnemyController>();
             if (enemy != null)
             {
@@ -199,6 +194,50 @@ public class WaveSpawner : MonoBehaviour
                 enemy.Initialize(selected.type);
             }
         }
+    }
+    
+    Vector3 GetVersusSpawnPosition(int side)
+    {
+        Camera cam = Camera.main;
+        if (cam == null)
+        {
+            // Fallback to original spawn points if no camera
+            Transform[] sideSpawnPoints = GetSideSpawnPoints(side);
+            if (sideSpawnPoints.Length == 0)
+            {
+                return spawnPoints.Length > 0 ? spawnPoints[0].position : Vector3.up * 6;
+            }
+            return sideSpawnPoints[Random.Range(0, sideSpawnPoints.Length)].position;
+        }
+        
+        float camHeight = 2f * cam.orthographicSize;
+        float camWidth = camHeight * cam.aspect;
+        float halfWidth = camWidth / 2f;
+        
+        // Define lane positions for each side
+        // Player 1 (left side): 3 lanes in the left half
+        // Player 2 (right side): 3 lanes in the right half
+        int laneCount = 3;
+        float sideWidth = halfWidth;
+        float laneWidth = sideWidth / laneCount;
+        
+        float spawnY = cam.orthographicSize + 1f; // Just above the visible area
+        
+        int randomLane = Random.Range(0, laneCount);
+        float laneX;
+        
+        if (side == 0)
+        {
+            // Player 1: left side, lanes from -halfWidth to 0
+            laneX = -halfWidth + (randomLane + 0.5f) * laneWidth;
+        }
+        else
+        {
+            // Player 2: right side, lanes from 0 to halfWidth
+            laneX = (randomLane + 0.5f) * laneWidth;
+        }
+        
+        return new Vector3(laneX, spawnY, 0);
     }
     
     Transform[] GetSideSpawnPoints(int side)
