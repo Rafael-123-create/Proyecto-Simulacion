@@ -5,7 +5,9 @@ public class VersusModeManager : MonoBehaviour
     public Camera player1Camera;
     public Camera player2Camera;
     public Camera mainCamera;
-    public GameObject dividerLine; // Black line in the middle
+    
+    [HideInInspector]
+    public GameObject dividerLine; // Black line in the middle (created automatically)
     
     public const int Player1Layer = 8;
     public const int Player2Layer = 9;
