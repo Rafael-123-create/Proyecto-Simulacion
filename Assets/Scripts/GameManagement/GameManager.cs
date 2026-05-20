@@ -72,6 +72,17 @@ public class GameManager : MonoBehaviour
         InitializeGame();
     }
 
+    void Update()
+    {
+        // Debug: Press F1 to force trigger Game Over
+        if (UnityEngine.InputSystem.Keyboard.current != null && 
+            UnityEngine.InputSystem.Keyboard.current.f1Key.wasPressedThisFrame)
+        {
+            Debug.Log("GameManager: DEBUG - Force triggering Game Over");
+            EndGame();
+        }
+    }
+
     void InitializeGame()
     {
         currentLevel = 0;
