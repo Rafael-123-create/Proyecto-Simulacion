@@ -21,7 +21,7 @@ public class WaveSpawner : MonoBehaviour
     public List<EnemySpawnData> enemyTypes = new List<EnemySpawnData>();
     public Transform[] spawnPoints;
     public Transform[] versusSpawnPoints; // Spawn points específicos para modo versus
-    public float initialSpawnDelay = 2f;
+    public float initialSpawnDelay = 1f;
     public float difficultyIncreaseInterval = 30f;
     
     [Header("Level Settings")]
@@ -29,8 +29,8 @@ public class WaveSpawner : MonoBehaviour
     
     [Header("Difficulty Settings")]
     public float speedIncreasePerInterval = 0.2f;
-    public float spawnRateIncreasePerInterval = 0.1f;
-    public int maxConcurrentEnemies = 15;
+    public float spawnRateIncreasePerInterval = 0.25f;
+    public int maxConcurrentEnemies = 25;
     
     private float currentSpawnTimer;
     private float difficultyTimer;
@@ -71,8 +71,8 @@ public class WaveSpawner : MonoBehaviour
         }
         else
         {
-            baseMinInterval = 1f;
-            baseMaxInterval = 3f;
+            baseMinInterval = 0.4f;
+            baseMaxInterval = 1.2f;
             Debug.LogWarning("WaveSpawner: No enemy types configured!");
         }
         
@@ -253,6 +253,37 @@ public class WaveSpawner : MonoBehaviour
             return;
         }
         
+        // Determine how many enemies to spawn based on difficulty
+        int spawnCount = 1;
+        if (DifficultyScale > 0.6f && Random.value < 0.4f)
+        {
+            spawnCount = Random.Range(2, 4); // 2-3 enemies at high difficulty
+        }
+        else if (DifficultyScale > 0.3f && Random.value < 0.2f)
+        {
+            spawnCount = 2; // 2 enemies at medium difficulty
+        }
+        
+        // Check if we can spawn this many enemies
+        int currentEnemyCount = FindObjectsByType<EnemyController>().Length;
+        int availableSlots = maxConcurrentEnemies - currentEnemyCount;
+        spawnCount = Mathf.Min(spawnCount, availableSlots);
+        
+        if (spawnCount <= 0) return;
+        
+        for (int i = 0; i < spawnCount; i++)
+        {
+            SpawnSingleEnemy();
+        }
+        
+        if (spawnCount > 1)
+        {
+            Debug.Log("WaveSpawner: Spawned " + spawnCount + " enemies at once (DifficultyScale: " + DifficultyScale.ToString("F2") + ")");
+        }
+    }
+    
+    void SpawnSingleEnemy()
+    {
         EnemySpawnData selected = null;
         int attempts = 0;
         while (attempts < 10)
@@ -281,13 +312,11 @@ public class WaveSpawner : MonoBehaviour
             {
                 // Only player 1 is alive, spawn on left side
                 side = 0;
-                Debug.Log("WaveSpawner: Player 2 dead - spawning only on Player 1 side");
             }
             else if (!p1Alive && p2Alive)
             {
                 // Only player 2 is alive, spawn on right side
                 side = 1;
-                Debug.Log("WaveSpawner: Player 1 dead - spawning only on Player 2 side");
             }
             else
             {
@@ -314,7 +343,6 @@ public class WaveSpawner : MonoBehaviour
             int enemyLayer = side == 0 ? VersusModeManager.Player1Layer : VersusModeManager.Player2Layer;
             enemyObj.layer = enemyLayer;
             
-            Debug.Log("WaveSpawner: Spawned " + selected.type + " for Player " + (side + 1) + " at " + spawnPoint.position);
             EnemyController enemy = enemyObj.GetComponent<EnemyController>();
             if (enemy != null)
             {
@@ -325,7 +353,6 @@ public class WaveSpawner : MonoBehaviour
         {
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
-            Debug.Log("WaveSpawner: Spawned " + selected.type + " at " + spawnPoint.position);
             EnemyController enemy = enemyObj.GetComponent<EnemyController>();
             if (enemy != null)
             {
@@ -383,8 +410,8 @@ public class WaveSpawner : MonoBehaviour
         maxInterval *= versusMultiplier;
         
         // Clamp intervals to reasonable values
-        minInterval = Mathf.Max(0.2f, minInterval);
-        maxInterval = Mathf.Max(minInterval + 0.2f, maxInterval);
+        minInterval = Mathf.Max(0.12f, minInterval);
+        maxInterval = Mathf.Max(minInterval + 0.12f, maxInterval);
         
         currentSpawnTimer = Random.Range(minInterval, maxInterval);
     }
@@ -392,6 +419,13 @@ public class WaveSpawner : MonoBehaviour
     void IncreaseDifficulty()
     {
         Debug.Log("Difficulty increased! Spawn rate faster, enemies faster.");
+        
+        // Increase speed of all existing enemies
+        EnemyController[] enemies = FindObjectsByType<EnemyController>();
+        foreach (EnemyController enemy in enemies)
+        {
+            enemy.speed += speedIncreasePerInterval;
+        }
     }
     
     public void ResetLevel()
