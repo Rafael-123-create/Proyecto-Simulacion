@@ -5919,7 +5919,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12a5c1227cc2b89438ea600fecec4ace, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VideoBackground
-  videoClip: {fileID: 0}
+  videoClip: {fileID: 32900000, guid: ad2d0656d9cf84444908e4149ed11605, type: 3}
   loop: 1
   playOnAwake: 1
 --- !u!1660057539 &9223372036854775807

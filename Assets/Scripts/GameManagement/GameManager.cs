@@ -115,9 +115,10 @@ public class GameManager : MonoBehaviour
         // Spawn players
         SpawnPlayers();
 
-        // Enable wave spawner
+        // Reset and enable wave spawner
         if (waveSpawner != null)
         {
+            waveSpawner.ResetLevel();
             waveSpawner.enabled = true;
         }
 

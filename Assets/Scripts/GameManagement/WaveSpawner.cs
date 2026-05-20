@@ -19,18 +19,21 @@ public class WaveSpawner : MonoBehaviour
     
     [Header("Spawn Settings")]
     public List<EnemySpawnData> enemyTypes = new List<EnemySpawnData>();
-    public Transform[] spawnPoints; // Top of screen positions
+    public Transform[] spawnPoints;
     public float initialSpawnDelay = 2f;
-    public float difficultyIncreaseInterval = 30f; // How often to increase difficulty
+    public float difficultyIncreaseInterval = 30f;
+    public float levelDuration = 60f;
     
     [Header("Difficulty Settings")]
     public float speedIncreasePerInterval = 0.2f;
-    public float spawnRateIncreasePerInterval = 0.1f; // Reduces interval
+    public float spawnRateIncreasePerInterval = 0.1f;
     
     private float currentSpawnTimer;
     private float difficultyTimer;
+    private float levelTimer;
     private float baseMinInterval = 1f;
     private float baseMaxInterval = 3f;
+    private bool levelEnded = false;
     
     // Public difficulty scale (0 to 1) that increases over time
     public float DifficultyScale { get; private set; } = 0f;
@@ -51,7 +54,6 @@ public class WaveSpawner : MonoBehaviour
     {
         Debug.Log("WaveSpawner: Starting with " + enemyTypes.Count + " enemy types and " + spawnPoints.Length + " spawn points");
         
-        // Initialize base intervals from the first enemy type (if any) or use defaults
         if (enemyTypes.Count > 0)
         {
             baseMinInterval = enemyTypes[0].minSpawnInterval;
@@ -73,21 +75,34 @@ public class WaveSpawner : MonoBehaviour
         
         currentSpawnTimer = initialSpawnDelay;
         difficultyTimer = 0f;
+        levelTimer = 0f;
+        levelEnded = false;
     }
     
     void Update()
     {
+        if (levelEnded) return;
+        
+        levelTimer += Time.deltaTime;
         difficultyTimer += Time.deltaTime;
         
-        // Calculate difficulty scale (0 to 1) based on elapsed time
-        // Reaches max difficulty after 3 intervals (90 seconds)
         DifficultyScale = Mathf.Min(1f, difficultyTimer / (difficultyIncreaseInterval * 3f));
         
-        // Increase difficulty over time
         if (difficultyTimer >= difficultyIncreaseInterval)
         {
             difficultyTimer = 0f;
             IncreaseDifficulty();
+        }
+        
+        if (levelTimer >= levelDuration)
+        {
+            levelEnded = true;
+            Debug.Log("WaveSpawner: Level duration reached (" + levelDuration + "s). Completing level...");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.LevelComplete();
+            }
+            return;
         }
         
         currentSpawnTimer -= Time.deltaTime;
@@ -214,12 +229,15 @@ public class WaveSpawner : MonoBehaviour
     
     void IncreaseDifficulty()
     {
-        // Increase speed of existing enemies? Or just make new ones faster?
-        // We'll increase the base speed for new enemies by adjusting the enemy type settings.
-        // For simplicity, we'll just note that the enemy prefabs should have a base speed and we modify it in Initialize.
-        // Alternatively, we can adjust the spawn rates and maybe add more enemy types later.
-        // For now, we'll just log.
         Debug.Log("Difficulty increased!");
+    }
+    
+    public void ResetLevel()
+    {
+        levelTimer = 0f;
+        difficultyTimer = 0f;
+        levelEnded = false;
+        DifficultyScale = 0f;
     }
     
     EnemySpawnData SelectWeightedRandom(List<EnemySpawnData> list)
