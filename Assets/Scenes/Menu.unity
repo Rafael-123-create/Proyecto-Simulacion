@@ -426,7 +426,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 500000201}
   - {fileID: 100000103}
   - {fileID: 100000344}
   - {fileID: 100000351}
@@ -641,6 +640,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 500000201}
   - {fileID: 100000337}
   - {fileID: 100000338}
   - {fileID: 100000340}
@@ -5756,6 +5756,7 @@ GameObject:
   - component: {fileID: 500000201}
   - component: {fileID: 500000203}
   - component: {fileID: 500000202}
+  - component: {fileID: 500000204}
   m_Layer: 5
   m_Name: VideoBackground
   m_TagString: Untagged
@@ -5775,7 +5776,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 100000014}
+  m_Father: {fileID: 100000103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -5817,6 +5818,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 500000200}
   m_CullTransparentMesh: 1
+--- !u!114 &500000204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500000200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12a5c1227cc2b89438ea600fecec4ace, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VideoBackground
+  videoClip: {fileID: 0}
+  loop: 1
+  playOnAwake: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
