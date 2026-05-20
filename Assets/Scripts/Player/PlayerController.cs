@@ -321,15 +321,6 @@ public class PlayerController : MonoBehaviour
             AudioHelper.PlayShoot();
         }
     }
-            
-            bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
-            if (isVersus)
-            {
-                int bulletLayer = playerNumber == 1 ? VersusModeManager.Player1Layer : VersusModeManager.Player2Layer;
-                bullet.layer = bulletLayer;
-            }
-        }
-    }
     
     // Visualize lanes in editor
     void OnDrawGizmosSelected()
