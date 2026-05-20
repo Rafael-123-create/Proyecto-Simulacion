@@ -59,15 +59,30 @@ public abstract class EnemyController : MonoBehaviour
     
     Camera GetActiveCamera()
     {
-        // Try to find an active camera
-        Camera[] cameras = FindObjectsByType<Camera>();
-        foreach (Camera cam in cameras)
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+        
+        if (isVersus)
         {
-            if (cam.enabled && cam.gameObject.activeInHierarchy)
+            Camera[] cameras = FindObjectsByType<Camera>();
+            Camera bestCam = null;
+            float closestDist = Mathf.Infinity;
+            
+            foreach (Camera cam in cameras)
             {
-                return cam;
+                if (cam.enabled && cam.gameObject.activeInHierarchy)
+                {
+                    float dist = Vector3.Distance(transform.position, cam.transform.position);
+                    if (dist < closestDist)
+                    {
+                        closestDist = dist;
+                        bestCam = cam;
+                    }
+                }
             }
+            
+            if (bestCam != null) return bestCam;
         }
+        
         return Camera.main;
     }
     

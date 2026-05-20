@@ -4,6 +4,7 @@ public class VersusModeManager : MonoBehaviour
 {
     public Camera player1Camera;
     public Camera player2Camera;
+    public Camera mainCamera;
 
     void Awake()
     {
@@ -16,6 +17,11 @@ public class VersusModeManager : MonoBehaviour
         {
             player2Camera = FindCameraByName("Player2Camera");
         }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
         
         Debug.Log("VersusModeManager: P1 Camera = " + (player1Camera != null ? player1Camera.gameObject.name : "NULL"));
         Debug.Log("VersusModeManager: P2 Camera = " + (player2Camera != null ? player2Camera.gameObject.name : "NULL"));
@@ -23,14 +29,12 @@ public class VersusModeManager : MonoBehaviour
     
     Camera FindCameraByName(string name)
     {
-        // Try exact match first
         GameObject obj = GameObject.Find(name);
         if (obj != null)
         {
             Camera cam = obj.GetComponent<Camera>();
             if (cam != null) return cam;
             
-            // Check children
             foreach (Transform child in obj.transform)
             {
                 cam = child.GetComponent<Camera>();
@@ -38,7 +42,6 @@ public class VersusModeManager : MonoBehaviour
             }
         }
         
-        // Search all cameras
         Camera[] allCameras = FindObjectsByType<Camera>();
         foreach (Camera cam in allCameras)
         {
@@ -59,6 +62,11 @@ public class VersusModeManager : MonoBehaviour
             return;
         }
 
+        if (mainCamera != null)
+        {
+            mainCamera.enabled = false;
+        }
+
         player1Camera.enabled = true;
         player2Camera.enabled = true;
 
@@ -68,32 +76,48 @@ public class VersusModeManager : MonoBehaviour
         ConfigureCamera(player1Camera, 0);
         ConfigureCamera(player2Camera, 1);
         
-        // Offset Player2Camera to show the right side of the play area
-        float camHeight = 2f * player2Camera.orthographicSize;
-        float camWidth = camHeight * player2Camera.aspect;
-        float halfPlayableWidth = camWidth / 2f;
+        float camHeight = 2f * player1Camera.orthographicSize;
+        float camWidth = camHeight * player1Camera.aspect;
+        float halfWidth = camWidth * 0.5f;
         
-        Vector3 p1Pos = player1Camera.transform.position;
-        player2Camera.transform.position = new Vector3(p1Pos.x + halfPlayableWidth, p1Pos.y, p1Pos.z);
+        player1Camera.transform.position = new Vector3(-halfWidth * 0.5f, 0f, -10f);
+        player2Camera.transform.position = new Vector3(halfWidth * 0.5f, 0f, -10f);
         
-        Debug.Log("VersusModeManager: Modo versus activado - P2 camera offset: " + halfPlayableWidth);
+        int player1Layer = LayerMask.NameToLayer("Player1");
+        int player2Layer = LayerMask.NameToLayer("Player2");
+        
+        if (player1Layer >= 0)
+        {
+            player1Camera.cullingMask = (1 << player1Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
+        }
+        if (player2Layer >= 0)
+        {
+            player2Camera.cullingMask = (1 << player2Layer) | (1 << LayerMask.NameToLayer("UI")) | (1 << LayerMask.NameToLayer("Default")) | (1 << LayerMask.NameToLayer("Background"));
+        }
+        
+        Debug.Log("VersusModeManager: Modo versus activado 50/50 - P1 at x=" + player1Camera.transform.position.x + ", P2 at x=" + player2Camera.transform.position.x);
     }
 
     public void DisableVersusMode()
     {
-        if (player1Camera == null) return;
+        if (mainCamera != null)
+        {
+            mainCamera.enabled = true;
+            mainCamera.rect = new Rect(0f, 0f, 1f, 1f);
+            mainCamera.transform.position = new Vector3(0, 0, -10);
+            mainCamera.cullingMask = ~0;
+        }
 
-        player1Camera.rect = new Rect(0f, 0f, 1f, 1f);
-        player1Camera.enabled = true;
-        
-        // Reset Player1Camera position
-        player1Camera.transform.position = new Vector3(0, 0, -10);
+        if (player1Camera != null)
+        {
+            player1Camera.enabled = false;
+            player1Camera.cullingMask = ~0;
+        }
         
         if (player2Camera != null)
         {
             player2Camera.enabled = false;
-            // Reset Player2Camera position
-            player2Camera.transform.position = new Vector3(0, 0, -10);
+            player2Camera.cullingMask = ~0;
         }
     }
 

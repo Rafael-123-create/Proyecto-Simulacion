@@ -61,37 +61,28 @@ public class PlayerController : MonoBehaviour
         float camHeight = 2f * cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
         
-        // Check versus mode
         bool isVersus = false;
         if (GameManager.Instance != null)
         {
             isVersus = GameManager.Instance.IsVersusMode();
         }
         
-        float playableWidth = camWidth;
-        
-        // Calculate lane width
+        float playableWidth = isVersus ? camWidth * 0.5f : camWidth;
         laneWidth = playableWidth / laneCount;
         
-        // Calculate screen bounds for this player
         float halfPlayableWidth = playableWidth / 2f;
         screenLeft = -halfPlayableWidth;
         screenRight = halfPlayableWidth;
         
-        // For versus mode, adjust bounds based on player number
-        if (isVersus)
+        if (isVersus && playerNumber == 2)
         {
-            if (playerNumber == 2)
-            {
-                screenLeft += playableWidth;
-                screenRight += playableWidth;
-            }
+            screenLeft += playableWidth;
+            screenRight += playableWidth;
         }
         
-        // Initialize target lane X
         targetLaneX = GetLaneCenterX();
         
-        Debug.Log("PlayerController: Player " + playerNumber + " bounds: left=" + screenLeft + ", right=" + screenRight);
+        Debug.Log("PlayerController: Player " + playerNumber + " bounds: left=" + screenLeft + ", right=" + screenRight + " (versus=" + isVersus + ")");
     }
     
     Camera GetPlayerCamera()
@@ -324,6 +315,16 @@ public class PlayerController : MonoBehaviour
             if (bulletScript != null)
             {
                 bulletScript.ownerPlayerNumber = playerNumber;
+            }
+            
+            bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+            if (isVersus)
+            {
+                int bulletLayer = playerNumber == 1 ? LayerMask.NameToLayer("Player1") : LayerMask.NameToLayer("Player2");
+                if (bulletLayer >= 0)
+                {
+                    bullet.layer = bulletLayer;
+                }
             }
         }
     }

@@ -121,15 +121,61 @@ public class WaveSpawner : MonoBehaviour
             return;
         }
         
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
         
-        GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
-        Debug.Log("WaveSpawner: Spawned " + selected.type + " at " + spawnPoint.position);
-        EnemyController enemy = enemyObj.GetComponent<EnemyController>();
-        if (enemy != null)
+        if (isVersus)
         {
-            enemy.Initialize(selected.type);
+            int side = Random.Range(0, 2);
+            Transform[] sideSpawnPoints = GetSideSpawnPoints(side);
+            if (sideSpawnPoints.Length == 0)
+            {
+                Debug.LogWarning("WaveSpawner: No spawn points for side " + side);
+                return;
+            }
+            Transform spawnPoint = sideSpawnPoints[Random.Range(0, sideSpawnPoints.Length)];
+            GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
+            
+            int enemyLayer = side == 0 ? LayerMask.NameToLayer("Player1") : LayerMask.NameToLayer("Player2");
+            if (enemyLayer >= 0)
+            {
+                enemyObj.layer = enemyLayer;
+            }
+            
+            Debug.Log("WaveSpawner: Spawned " + selected.type + " for Player " + (side + 1) + " at " + spawnPoint.position);
+            EnemyController enemy = enemyObj.GetComponent<EnemyController>();
+            if (enemy != null)
+            {
+                enemy.Initialize(selected.type);
+            }
         }
+        else
+        {
+            Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            GameObject enemyObj = Instantiate(selected.prefab, spawnPoint.position, Quaternion.identity);
+            Debug.Log("WaveSpawner: Spawned " + selected.type + " at " + spawnPoint.position);
+            EnemyController enemy = enemyObj.GetComponent<EnemyController>();
+            if (enemy != null)
+            {
+                enemy.Initialize(selected.type);
+            }
+        }
+    }
+    
+    Transform[] GetSideSpawnPoints(int side)
+    {
+        List<Transform> sidePoints = new List<Transform>();
+        foreach (Transform sp in spawnPoints)
+        {
+            if (side == 0 && sp.position.x <= 0f)
+            {
+                sidePoints.Add(sp);
+            }
+            else if (side == 1 && sp.position.x > 0f)
+            {
+                sidePoints.Add(sp);
+            }
+        }
+        return sidePoints.ToArray();
     }
     
     void ResetSpawnTimer()

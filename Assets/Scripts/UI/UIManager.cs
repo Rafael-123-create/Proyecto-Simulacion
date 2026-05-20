@@ -146,15 +146,15 @@ public class UIManager : MonoBehaviour
                 {
                     if (player1Score > player2Score)
                     {
-                        winnerText.text = "PLAYER 1 WINS!\nP1: " + player1Score + "  P2: " + player2Score;
+                        winnerText.text = "PLAYER 1 WINS!\nScore: " + player1Score;
                     }
                     else if (player2Score > player1Score)
                     {
-                        winnerText.text = "PLAYER 2 WINS!\nP1: " + player1Score + "  P2: " + player2Score;
+                        winnerText.text = "PLAYER 2 WINS!\nScore: " + player2Score;
                     }
                     else
                     {
-                        winnerText.text = "IT'S A TIE!\nP1: " + player1Score + "  P2: " + player2Score;
+                        winnerText.text = "IT'S A TIE!\nScore: " + player1Score;
                     }
                 }
                 else

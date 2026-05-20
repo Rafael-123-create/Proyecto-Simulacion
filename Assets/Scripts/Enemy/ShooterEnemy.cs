@@ -58,16 +58,20 @@ public class ShooterEnemy : EnemyController
     {
         if (bulletPrefab != null && firePoint != null)
         {
-            // Instantiate enemy bullet (moving downward)
             GameObject bulletObj = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
             Bullet bullet = bulletObj.GetComponent<Bullet>();
             if (bullet != null)
             {
-                bullet.speed = 5f; // Enemy bullet speed
+                bullet.speed = 5f;
                 bullet.isPlayerBullet = false;
                 bullet.damage = 1;
             }
-            // Optional: add muzzle flash effect
+            
+            bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+            if (isVersus)
+            {
+                bulletObj.layer = gameObject.layer;
+            }
         }
     }
 }

@@ -161,20 +161,20 @@ public class GameManager : MonoBehaviour
             
             if (isVersusMode)
             {
-                // In versus mode, we need 2 players
                 if (playerCount >= 2)
                 {
-                    // Assign Player 1 to the one with lower x position
                     if (existingPlayers[0].transform.position.x < existingPlayers[1].transform.position.x)
                     {
                         existingPlayers[0].playerNumber = 1;
                         existingPlayers[0].gameObject.name = "Player1";
                         existingPlayers[0].gameObject.tag = "Player";
+                        existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player1");
                         existingPlayers[0].gameObject.SetActive(true);
                         
                         existingPlayers[1].playerNumber = 2;
                         existingPlayers[1].gameObject.name = "Player2";
                         existingPlayers[1].gameObject.tag = "Player";
+                        existingPlayers[1].gameObject.layer = LayerMask.NameToLayer("Player2");
                         existingPlayers[1].gameObject.SetActive(true);
                     }
                     else
@@ -182,15 +182,16 @@ public class GameManager : MonoBehaviour
                         existingPlayers[1].playerNumber = 1;
                         existingPlayers[1].gameObject.name = "Player1";
                         existingPlayers[1].gameObject.tag = "Player";
+                        existingPlayers[1].gameObject.layer = LayerMask.NameToLayer("Player1");
                         existingPlayers[1].gameObject.SetActive(true);
                         
                         existingPlayers[0].playerNumber = 2;
                         existingPlayers[0].gameObject.name = "Player2";
                         existingPlayers[0].gameObject.tag = "Player";
+                        existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player2");
                         existingPlayers[0].gameObject.SetActive(true);
                     }
                     
-                    // Set explicit positions
                     existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
                     existingPlayers[1].transform.position = new Vector3(2f, -3f, 0f);
                     
@@ -202,6 +203,7 @@ public class GameManager : MonoBehaviour
                     existingPlayers[0].playerNumber = 1;
                     existingPlayers[0].gameObject.name = "Player1";
                     existingPlayers[0].gameObject.tag = "Player";
+                    existingPlayers[0].gameObject.layer = LayerMask.NameToLayer("Player1");
                     existingPlayers[0].gameObject.SetActive(true);
                     existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
                     
@@ -209,6 +211,7 @@ public class GameManager : MonoBehaviour
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     player2Obj.name = "Player2";
                     player2Obj.tag = "Player";
+                    player2Obj.layer = LayerMask.NameToLayer("Player2");
                     PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
                     if (pc2 != null) pc2.playerNumber = 2;
                     Debug.Log("GameManager: Versus mode - Spawned Player2 from prefab");
@@ -219,6 +222,7 @@ public class GameManager : MonoBehaviour
                     GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
                     player1Obj.name = "Player1";
                     player1Obj.tag = "Player";
+                    player1Obj.layer = LayerMask.NameToLayer("Player1");
                     PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
                     if (pc1 != null) pc1.playerNumber = 1;
                     
@@ -226,14 +230,16 @@ public class GameManager : MonoBehaviour
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     player2Obj.name = "Player2";
                     player2Obj.tag = "Player";
+                    player2Obj.layer = LayerMask.NameToLayer("Player2");
                     PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
                     if (pc2 != null) pc2.playerNumber = 2;
                     Debug.Log("GameManager: Versus mode - Spawned both players from prefabs");
                 }
+                
+                EnsureVersusSpawnPoints();
             }
             else
             {
-                // Single player mode: only enable Player 1, disable Player 2
                 if (playerCount >= 1)
                 {
                     existingPlayers[0].playerNumber = 1;
@@ -243,7 +249,6 @@ public class GameManager : MonoBehaviour
                     existingPlayers[0].transform.position = new Vector3(0f, -3f, 0f);
                 }
                 
-                // Disable any additional players
                 for (int i = 1; i < playerCount; i++)
                 {
                     Debug.Log("GameManager: Disabling extra player " + i);
@@ -254,7 +259,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Spawn from prefabs
         PlayerController[] playersToDestroy = FindObjectsByType<PlayerController>();
         foreach (PlayerController player in playersToDestroy)
         {
@@ -277,6 +281,54 @@ public class GameManager : MonoBehaviour
             player2Obj.name = "Player2";
             PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
             if (pc2 != null) pc2.playerNumber = 2;
+            
+            EnsureVersusSpawnPoints();
+        }
+    }
+    
+    void EnsureVersusSpawnPoints()
+    {
+        if (waveSpawner == null || waveSpawner.spawnPoints == null || waveSpawner.spawnPoints.Length == 0) return;
+        
+        bool hasLeftSpawn = false;
+        bool hasRightSpawn = false;
+        
+        foreach (Transform sp in waveSpawner.spawnPoints)
+        {
+            if (sp.position.x <= 0f) hasLeftSpawn = true;
+            if (sp.position.x > 0f) hasRightSpawn = true;
+        }
+        
+        if (!hasRightSpawn)
+        {
+            int count = waveSpawner.spawnPoints.Length;
+            Transform[] newPoints = new Transform[count * 2];
+            System.Array.Copy(waveSpawner.spawnPoints, newPoints, count);
+            
+            GameObject spawnContainer = null;
+            if (count > 0 && waveSpawner.spawnPoints[0] != null)
+            {
+                spawnContainer = waveSpawner.spawnPoints[0].parent != null ? waveSpawner.spawnPoints[0].parent.gameObject : new GameObject("SpawnPoints");
+            }
+            else
+            {
+                spawnContainer = new GameObject("SpawnPoints");
+            }
+            
+            for (int i = 0; i < count; i++)
+            {
+                if (waveSpawner.spawnPoints[i] != null)
+                {
+                    Vector3 leftPos = waveSpawner.spawnPoints[i].position;
+                    GameObject rightPoint = new GameObject("SpawnPoint_R" + i);
+                    rightPoint.transform.SetParent(spawnContainer.transform);
+                    rightPoint.transform.position = new Vector3(-leftPos.x, leftPos.y, leftPos.z);
+                    newPoints[count + i] = rightPoint.transform;
+                }
+            }
+            
+            waveSpawner.spawnPoints = newPoints;
+            Debug.Log("GameManager: Created mirrored spawn points for versus mode. Total: " + newPoints.Length);
         }
     }
 
@@ -475,29 +527,24 @@ public class GameManager : MonoBehaviour
         
         if (isVersusMode)
         {
-            // In versus mode, only save the winner's score
             if (playerScores[0] > playerScores[1])
             {
-                // Player 1 wins
-                SaveScoreForPlayer(playerName + "P1", playerScores[0], "VS");
+                SaveScoreForPlayer(playerName, playerScores[0], "VS");
                 Debug.Log("ScoreManager: Versus mode - Player 1 wins with " + playerScores[0] + " points");
             }
             else if (playerScores[1] > playerScores[0])
             {
-                // Player 2 wins
-                SaveScoreForPlayer(playerName + "P2", playerScores[1], "VS");
+                SaveScoreForPlayer(playerName, playerScores[1], "VS");
                 Debug.Log("ScoreManager: Versus mode - Player 2 wins with " + playerScores[1] + " points");
             }
             else
             {
-                // Tie - save both or just player 1
-                SaveScoreForPlayer(playerName + "P1", playerScores[0], "VS");
-                Debug.Log("ScoreManager: Versus mode - Tie! Saving Player 1 score: " + playerScores[0]);
+                SaveScoreForPlayer(playerName, playerScores[0], "VS");
+                Debug.Log("ScoreManager: Versus mode - Tie! Saving score: " + playerScores[0]);
             }
         }
         else
         {
-            // Single player mode
             SaveScoreForPlayer(playerName, playerScores[0], "SP");
         }
     }
