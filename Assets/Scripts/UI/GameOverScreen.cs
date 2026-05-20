@@ -220,7 +220,7 @@ public class GameOverScreen : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.StartLevel();
+            GameManager.Instance.RestartGame();
         }
         Hide();
     }

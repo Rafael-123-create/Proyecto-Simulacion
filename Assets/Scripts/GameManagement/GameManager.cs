@@ -131,6 +131,45 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LevelStartWait());
     }
 
+    public void RestartGame()
+    {
+        Debug.Log("GameManager: Restarting game...");
+        
+        isGameOver = false;
+        currentLevel = 0;
+        playerScores[0] = 0;
+        playerScores[1] = 0;
+        playerLives[0] = startingLives;
+        playerLives[1] = startingLives;
+        isLevelComplete = false;
+
+        // Re-enable all players
+        PlayerController[] players = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in players)
+        {
+            player.enabled = true;
+            player.gameObject.SetActive(true);
+        }
+
+        // Update UI
+        if (uiManager != null)
+        {
+            uiManager.UpdateScore(1, playerScores[0]);
+            uiManager.UpdateScore(2, playerScores[1]);
+            uiManager.UpdateLives(1, playerLives[0]);
+            uiManager.UpdateLives(2, playerLives[1]);
+            uiManager.SetLevelText(currentLevel + 1);
+        }
+
+        // Hide game over screen
+        if (GameOverScreen.Instance != null)
+        {
+            GameOverScreen.Instance.Hide();
+        }
+
+        StartLevel();
+    }
+
     IEnumerator LevelStartWait()
     {
         if (uiManager != null)
