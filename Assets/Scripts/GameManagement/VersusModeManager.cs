@@ -80,10 +80,16 @@ public class VersusModeManager : MonoBehaviour
         ConfigureCamera(player1Camera, 0);
         ConfigureCamera(player2Camera, 1);
         
-        float camHeight = 2f * player1Camera.orthographicSize;
+        // Increase orthographicSize for wider view in versus mode (similar to single player feel)
+        float versusOrthographicSize = 9f;
+        player1Camera.orthographicSize = versusOrthographicSize;
+        player2Camera.orthographicSize = versusOrthographicSize;
+        
+        float camHeight = 2f * versusOrthographicSize;
         float camWidth = camHeight * player1Camera.aspect;
         float halfWidth = camWidth * 0.5f;
         
+        // Position cameras centered on each player's zone
         player1Camera.transform.position = new Vector3(-halfWidth * 0.5f, 0f, -10f);
         player2Camera.transform.position = new Vector3(halfWidth * 0.5f, 0f, -10f);
         

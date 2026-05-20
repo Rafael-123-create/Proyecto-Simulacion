@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
         StartLevel();
     }
 
-    public     void StartLevel()
+    public void StartLevel()
     {
         isLevelComplete = false;
         
@@ -120,6 +120,12 @@ public class GameManager : MonoBehaviour
 
         // Spawn players
         SpawnPlayers();
+
+        // Regenerate spawn points after players are spawned (cameras are configured)
+        if (waveSpawner != null)
+        {
+            waveSpawner.RegenerateSpawnPoints();
+        }
 
         // Reset and enable wave spawner
         if (waveSpawner != null)
@@ -150,13 +156,16 @@ public class GameManager : MonoBehaviour
         playerLives[1] = startingLives;
         isLevelComplete = false;
 
-        // Re-enable all players
-        PlayerController[] players = FindObjectsByType<PlayerController>();
-        foreach (PlayerController player in players)
+        // Disable all existing players and reset their state
+        PlayerController[] existingPlayers = FindObjectsByType<PlayerController>();
+        foreach (PlayerController player in existingPlayers)
         {
-            player.enabled = true;
-            player.gameObject.SetActive(true);
+            player.gameObject.SetActive(false);
         }
+
+        // Temporarily force spawn from prefabs to ensure clean state with correct tags/layers
+        bool originalUseExisting = useExistingPlayersInScene;
+        useExistingPlayersInScene = false;
 
         // Update UI
         if (uiManager != null)
@@ -175,6 +184,9 @@ public class GameManager : MonoBehaviour
         }
 
         StartLevel();
+        
+        // Restore original setting
+        useExistingPlayersInScene = originalUseExisting;
     }
 
     IEnumerator LevelStartWait()
@@ -207,6 +219,20 @@ public class GameManager : MonoBehaviour
             
             if (isVersusMode)
             {
+                // Calculate zone centers based on camera setup
+                float zoneCenterX = 0f;
+                if (versusModeManager != null && versusModeManager.player1Camera != null)
+                {
+                    float camHeight = 2f * versusModeManager.player1Camera.orthographicSize;
+                    float camWidth = camHeight * versusModeManager.player1Camera.aspect;
+                    float halfWidth = camWidth * 0.5f;
+                    zoneCenterX = halfWidth * 0.5f; // Center of each zone
+                }
+                else
+                {
+                    zoneCenterX = 6f; // Fallback value
+                }
+                
                 if (playerCount >= 2)
                 {
                     if (existingPlayers[0].transform.position.x < existingPlayers[1].transform.position.x)
@@ -220,8 +246,8 @@ public class GameManager : MonoBehaviour
                         SetupPlayer(existingPlayers[0], 2, VersusModeManager.Player2Layer);
                     }
                     
-                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
-                    existingPlayers[1].transform.position = new Vector3(2f, -3f, 0f);
+                    existingPlayers[0].transform.position = new Vector3(-zoneCenterX, -3f, 0f);
+                    existingPlayers[1].transform.position = new Vector3(zoneCenterX, -3f, 0f);
                     
                     Debug.Log("GameManager: Versus mode - Player1 at " + existingPlayers[0].transform.position + 
                              ", Player2 at " + existingPlayers[1].transform.position);
@@ -229,20 +255,20 @@ public class GameManager : MonoBehaviour
                 else if (playerCount == 1 && player2Prefab != null)
                 {
                     SetupPlayer(existingPlayers[0], 1, VersusModeManager.Player1Layer);
-                    existingPlayers[0].transform.position = new Vector3(-2f, -3f, 0f);
+                    existingPlayers[0].transform.position = new Vector3(-zoneCenterX, -3f, 0f);
                     
-                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    Vector3 player2Pos = new Vector3(zoneCenterX, -3f, 0f);
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     SetupPlayerObject(player2Obj, 2, VersusModeManager.Player2Layer);
                     Debug.Log("GameManager: Versus mode - Spawned Player2 from prefab");
                 }
                 else if (player2Prefab != null)
                 {
-                    Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
+                    Vector3 player1Pos = new Vector3(-zoneCenterX, -3f, 0f);
                     GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
                     SetupPlayerObject(player1Obj, 1, VersusModeManager.Player1Layer);
                     
-                    Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+                    Vector3 player2Pos = new Vector3(zoneCenterX, -3f, 0f);
                     GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
                     SetupPlayerObject(player2Obj, 2, VersusModeManager.Player2Layer);
                     Debug.Log("GameManager: Versus mode - Spawned both players from prefabs");
@@ -279,22 +305,27 @@ public class GameManager : MonoBehaviour
             Destroy(player.gameObject);
         }
 
+        // Calculate zone centers based on camera setup
+        float prefabZoneCenterX = 6f;
+        if (versusModeManager != null && versusModeManager.player1Camera != null)
+        {
+            float camHeight = 2f * versusModeManager.player1Camera.orthographicSize;
+            float camWidth = camHeight * versusModeManager.player1Camera.aspect;
+            prefabZoneCenterX = camWidth * 0.25f;
+        }
+
         if (player1Prefab != null)
         {
-            Vector3 player1Pos = new Vector3(-2f, -3f, 0f);
+            Vector3 player1Pos = isVersusMode ? new Vector3(-prefabZoneCenterX, -3f, 0f) : new Vector3(0f, -3f, 0f);
             GameObject player1Obj = Instantiate(player1Prefab, player1Pos, Quaternion.identity).gameObject;
-            player1Obj.name = "Player1";
-            PlayerController pc1 = player1Obj.GetComponent<PlayerController>();
-            if (pc1 != null) pc1.playerNumber = 1;
+            SetupPlayerObject(player1Obj, 1, isVersusMode ? VersusModeManager.Player1Layer : 0);
         }
 
         if (player2Prefab != null && isVersusMode)
         {
-            Vector3 player2Pos = new Vector3(2f, -3f, 0f);
+            Vector3 player2Pos = new Vector3(prefabZoneCenterX, -3f, 0f);
             GameObject player2Obj = Instantiate(player2Prefab, player2Pos, Quaternion.identity).gameObject;
-            player2Obj.name = "Player2";
-            PlayerController pc2 = player2Obj.GetComponent<PlayerController>();
-            if (pc2 != null) pc2.playerNumber = 2;
+            SetupPlayerObject(player2Obj, 2, VersusModeManager.Player2Layer);
         }
     }
     

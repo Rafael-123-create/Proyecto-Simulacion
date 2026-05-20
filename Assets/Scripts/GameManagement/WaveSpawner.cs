@@ -81,6 +81,131 @@ public class WaveSpawner : MonoBehaviour
         levelEnded = false;
     }
     
+    public void RegenerateSpawnPoints()
+    {
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+        
+        // Destroy old spawn containers
+        GameObject oldContainer = GameObject.Find("VersusSpawnPoints");
+        if (oldContainer != null) DestroyImmediate(oldContainer);
+        oldContainer = GameObject.Find("SinglePlayerSpawnPoints");
+        if (oldContainer != null) DestroyImmediate(oldContainer);
+        
+        if (isVersus)
+        {
+            GenerateVersusSpawnPoints();
+        }
+        else
+        {
+            GenerateSinglePlayerSpawnPoints();
+        }
+        
+        Debug.Log("WaveSpawner: Spawn points regenerated. Total: " + (isVersus ? versusSpawnPoints?.Length : spawnPoints?.Length));
+    }
+    
+    void GenerateSinglePlayerSpawnPoints()
+    {
+        Camera mainCam = Camera.main;
+        if (mainCam == null)
+        {
+            mainCam = FindCameraByName("Player1Camera");
+        }
+        
+        if (mainCam == null)
+        {
+            Debug.LogWarning("WaveSpawner: Cannot generate single player spawn points - camera not found");
+            return;
+        }
+        
+        float camHeight = 2f * mainCam.orthographicSize;
+        float camWidth = camHeight * mainCam.aspect;
+        int laneCount = 5;
+        float laneWidth = camWidth / laneCount;
+        float screenLeft = -camWidth / 2f;
+        
+        float spawnY = mainCam.transform.position.y + mainCam.orthographicSize + 1f;
+        
+        List<Transform> newSpawnPoints = new List<Transform>();
+        GameObject spawnContainer = new GameObject("SinglePlayerSpawnPoints");
+        
+        for (int lane = 0; lane < laneCount; lane++)
+        {
+            float laneCenterX = screenLeft + (lane + 0.5f) * laneWidth;
+            GameObject point = new GameObject("SP_Spawn_L" + lane);
+            point.transform.SetParent(spawnContainer.transform);
+            point.transform.position = new Vector3(laneCenterX, spawnY, 0f);
+            newSpawnPoints.Add(point.transform);
+        }
+        
+        spawnPoints = newSpawnPoints.ToArray();
+        Debug.Log("WaveSpawner: Generated " + spawnPoints.Length + " single player spawn points");
+    }
+    
+    void GenerateVersusSpawnPoints()
+    {
+        Camera p1Cam = FindCameraByName("Player1Camera");
+        Camera p2Cam = FindCameraByName("Player2Camera");
+        
+        if (p1Cam == null || p2Cam == null)
+        {
+            Debug.LogWarning("WaveSpawner: Cannot generate versus spawn points - cameras not found");
+            return;
+        }
+        
+        float camHeight = 2f * p1Cam.orthographicSize;
+        float camWidth = camHeight * p1Cam.aspect;
+        float halfWidth = camWidth * 0.5f;
+        
+        int laneCount = 5;
+        float laneWidth = halfWidth / laneCount;
+        
+        float spawnY = p1Cam.transform.position.y + p1Cam.orthographicSize + 1f;
+        
+        List<Transform> newSpawnPoints = new List<Transform>();
+        GameObject spawnContainer = new GameObject("VersusSpawnPoints");
+        
+        // Generate P1 spawn points (left side) - same formula as PlayerController.GetLaneCenterX()
+        float p1ScreenLeft = -halfWidth;
+        for (int lane = 0; lane < laneCount; lane++)
+        {
+            float laneCenterX = p1ScreenLeft + (lane + 0.5f) * laneWidth;
+            GameObject point = new GameObject("P1_Spawn_L" + lane);
+            point.transform.SetParent(spawnContainer.transform);
+            point.transform.position = new Vector3(laneCenterX, spawnY, 0f);
+            newSpawnPoints.Add(point.transform);
+        }
+        
+        // Generate P2 spawn points (right side) - same formula as PlayerController.GetLaneCenterX()
+        float p2ScreenLeft = 0f;
+        for (int lane = 0; lane < laneCount; lane++)
+        {
+            float laneCenterX = p2ScreenLeft + (lane + 0.5f) * laneWidth;
+            GameObject point = new GameObject("P2_Spawn_L" + lane);
+            point.transform.SetParent(spawnContainer.transform);
+            point.transform.position = new Vector3(laneCenterX, spawnY, 0f);
+            newSpawnPoints.Add(point.transform);
+        }
+        
+        versusSpawnPoints = newSpawnPoints.ToArray();
+        Debug.Log("WaveSpawner: Generated " + versusSpawnPoints.Length + " versus spawn points");
+    }
+    
+    Camera FindCameraByName(string name)
+    {
+        GameObject obj = GameObject.Find(name);
+        if (obj != null)
+        {
+            Camera cam = obj.GetComponent<Camera>();
+            if (cam != null) return cam;
+            foreach (Transform child in obj.transform)
+            {
+                cam = child.GetComponent<Camera>();
+                if (cam != null) return cam;
+            }
+        }
+        return null;
+    }
+    
     void Update()
     {
         if (levelEnded) return;

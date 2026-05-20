@@ -118,7 +118,8 @@ public abstract class EnemyController : MonoBehaviour
         // Play explosion sound
         AudioHelper.PlayExplosion();
         
-        if (GameManager.Instance != null)
+        // Only award points if the enemy was hit by a player (not from collision)
+        if (lastHitByPlayer > 0 && GameManager.Instance != null)
         {
             GameManager.Instance.EnemyDestroyed(type, lastHitByPlayer);
         }

@@ -61,28 +61,34 @@ public class PlayerController : MonoBehaviour
         float camHeight = 2f * cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
         
-        bool isVersus = false;
-        if (GameManager.Instance != null)
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+        
+        if (isVersus)
         {
-            isVersus = GameManager.Instance.IsVersusMode();
+            float halfWidth = camWidth / 2f;
+            laneWidth = halfWidth / laneCount;
+            
+            if (playerNumber == 1)
+            {
+                screenLeft = -halfWidth;
+                screenRight = 0f;
+            }
+            else
+            {
+                screenLeft = 0f;
+                screenRight = halfWidth;
+            }
         }
-        
-        float playableWidth = isVersus ? camWidth * 0.5f : camWidth;
-        laneWidth = playableWidth / laneCount;
-        
-        float halfPlayableWidth = playableWidth / 2f;
-        screenLeft = -halfPlayableWidth;
-        screenRight = halfPlayableWidth;
-        
-        if (isVersus && playerNumber == 2)
+        else
         {
-            screenLeft += playableWidth;
-            screenRight += playableWidth;
+            laneWidth = camWidth / laneCount;
+            screenLeft = -camWidth / 2f;
+            screenRight = camWidth / 2f;
         }
         
         targetLaneX = GetLaneCenterX();
         
-        Debug.Log("PlayerController: Player " + playerNumber + " bounds: left=" + screenLeft + ", right=" + screenRight + " (versus=" + isVersus + ")");
+        Debug.Log("PlayerController: Player " + playerNumber + " bounds: left=" + screenLeft + ", right=" + screenRight + ", laneWidth=" + laneWidth + " (versus=" + isVersus + ")");
     }
     
     Camera GetPlayerCamera()
@@ -330,19 +336,20 @@ public class PlayerController : MonoBehaviour
         
         float camHeight = 2f * cam.orthographicSize;
         float camWidth = camHeight * cam.aspect;
-        bool isVersus = false;
-        if (GameManager.Instance != null)
+        bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
+        
+        float screenLeftGizmo, laneWidthGizmo;
+        
+        if (isVersus)
         {
-            isVersus = GameManager.Instance.IsVersusMode();
+            float halfWidth = camWidth / 2f;
+            laneWidthGizmo = halfWidth / laneCount;
+            screenLeftGizmo = (playerNumber == 1) ? -halfWidth : 0f;
         }
-        
-        float playableWidth = isVersus ? camWidth / 2f : camWidth;
-        float laneWidthGizmo = playableWidth / laneCount;
-        
-        float screenLeftGizmo = -playableWidth / 2f;
-        if (isVersus && playerNumber == 2)
+        else
         {
-            screenLeftGizmo += playableWidth;
+            laneWidthGizmo = camWidth / laneCount;
+            screenLeftGizmo = -camWidth / 2f;
         }
         
         // Draw lane centers

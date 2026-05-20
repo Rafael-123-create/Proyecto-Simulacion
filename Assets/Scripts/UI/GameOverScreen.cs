@@ -87,6 +87,12 @@ public class GameOverScreen : MonoBehaviour
         canReturnToMenu = false;
         pulseTime = 0f;
 
+        // Hide restart button in versus mode (has collision issues), keep menu button
+        if (restartButton != null)
+        {
+            restartButton.gameObject.SetActive(!versusMode);
+        }
+
         // Reset elements for animation
         if (panelImage != null)
         {
