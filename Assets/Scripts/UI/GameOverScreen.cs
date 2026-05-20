@@ -227,7 +227,52 @@ public class GameOverScreen : MonoBehaviour
 
     void OnMenu()
     {
+        // Save high score before returning to menu
+        SaveHighScore();
         UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
+    }
+    
+    void SaveHighScore()
+    {
+        if (GameManager.Instance == null) return;
+        
+        string playerName = ScoreManager.GetCurrentPlayerName();
+        bool isVersusMode = GameManager.Instance.IsVersusMode();
+        int player1Score = GameManager.Instance.GetPlayerScore(1);
+        int player2Score = GameManager.Instance.GetPlayerScore(2);
+        
+        if (isVersusMode)
+        {
+            if (player1Score > player2Score)
+            {
+                SaveScoreForPlayer(playerName, player1Score, "VS");
+            }
+            else if (player2Score > player1Score)
+            {
+                SaveScoreForPlayer(playerName, player2Score, "VS");
+            }
+            else
+            {
+                SaveScoreForPlayer(playerName, player1Score, "VS");
+            }
+        }
+        else
+        {
+            SaveScoreForPlayer(playerName, player1Score, "SP");
+        }
+    }
+    
+    void SaveScoreForPlayer(string name, int score, string mode)
+    {
+        if (score > 0 && ScoreManager.IsHighScore(score))
+        {
+            ScoreManager.SaveHighScore(name, score, mode);
+            Debug.Log("GameOverScreen: New high score saved! " + name + ": " + score + " (" + mode + ")");
+        }
+        else
+        {
+            Debug.Log("GameOverScreen: Score " + score + " not high enough for " + mode + " mode (min: " + ScoreManager.GetMinHighScore() + ")");
+        }
     }
 
     public void Hide()
