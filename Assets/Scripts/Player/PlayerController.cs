@@ -317,6 +317,11 @@ public class PlayerController : MonoBehaviour
                 bulletScript.ownerPlayerNumber = playerNumber;
             }
             
+            // Play shoot sound
+            AudioHelper.PlayShoot();
+        }
+    }
+            
             bool isVersus = GameManager.Instance != null && GameManager.Instance.IsVersusMode();
             if (isVersus)
             {

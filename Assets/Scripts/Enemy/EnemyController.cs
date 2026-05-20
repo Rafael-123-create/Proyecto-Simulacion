@@ -115,6 +115,9 @@ public abstract class EnemyController : MonoBehaviour
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
         
+        // Play explosion sound
+        AudioHelper.PlayExplosion();
+        
         if (GameManager.Instance != null)
         {
             GameManager.Instance.EnemyDestroyed(type, lastHitByPlayer);

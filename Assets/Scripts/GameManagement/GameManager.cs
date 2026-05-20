@@ -97,9 +97,12 @@ public class GameManager : MonoBehaviour
         StartLevel();
     }
 
-    public void StartLevel()
+    public     void StartLevel()
     {
         isLevelComplete = false;
+        
+        // Play gameplay music
+        AudioHelper.PlayGameplayMusic();
         
         // Clear existing enemies
         EnemyController[] enemies = FindObjectsByType<EnemyController>();
@@ -399,6 +402,9 @@ public class GameManager : MonoBehaviour
         int index = playerNumber - 1;
         if (index < 0 || index >= 2) return;
 
+        // Play player death sound
+        AudioHelper.PlayPlayerDeath();
+        
         playerLives[index]--;
         
         if (OnLivesChanged != null)
@@ -474,6 +480,9 @@ public class GameManager : MonoBehaviour
         if (isLevelComplete || isGameOver) return;
 
         isLevelComplete = true;
+        
+        // Play level up sound
+        AudioHelper.PlayLevelUp();
 
         if (waveSpawner != null)
         {

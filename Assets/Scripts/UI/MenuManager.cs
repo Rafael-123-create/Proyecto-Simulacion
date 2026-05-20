@@ -29,6 +29,7 @@ public class MenuManager : MonoBehaviour
     void Start()
     {
         ShowMainMenu();
+        AudioHelper.PlayMenuMusic();
     }
 
     // --- Botones del Menu Principal ---
